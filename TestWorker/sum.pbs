@@ -1,0 +1,16 @@
+#!/bin/bash -l
+#PBS -N my-sum
+
+module load gcc/4.6.2
+
+result=`./sum $a $b`
+status=$?
+if [ ${result} -eq ${c} ]
+then
+    printf "ok: ${a} + ${b} = ${result}\n"
+else
+    printf "nok: ${a} + ${b} = ${result} != ${c}\n"
+fi
+
+exit $status
+

@@ -1,0 +1,4 @@
+#!/bin/bash -l
+#PBS -l nodes=1:ppn=4
+echo "id = $PBS_ARRAYID"
+

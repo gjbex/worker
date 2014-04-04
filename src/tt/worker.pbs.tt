@@ -1,0 +1,52 @@
+[%shebang%]
+[%pbs%]
+
+# set worker application and options
+WORKER_APPL="[%worker%]"
+
+# get the job ID and to compute appropriate names
+WORKER_JOBID=`echo $PBS_JOBID | sed 's/\([0-9][0-9]*\).*/\1/'`
+
+# change to the working directory
+cd $PBS_O_WORKDIR
+
+# rename artifacts consistently with job name and ID scheme
+mv [%dir%][%basename%][%batch_ext%] [%default_sh%]
+mv [%dir%][%basename%][%run_ext%] [%default_run%]
+mv [%dir%][%pbs_file%] [%default_pbs%]
+
+# compute prolog option
+[%IF prolog%]cp [%dir%][%prolog%] [%default_pro%][%END%]
+WORKER_PROLOG="[%IF prolog%]-p [%default_pro%][%END%]"
+
+# compute batch option
+WORKER_BATCH="-b [%default_sh%]"
+
+# compute epilog option
+[%IF epilog%]cp [%dir%][%epilog%] [%default_epi%][%END%]
+WORKER_EPILOG="[%IF epilog%]-e [%default_epi%][%END%]"
+
+rm -rf [%dir%]
+
+# create host file to use for this job and compute number of cores
+mom=`head -1 $PBS_NODEFILE`
+echo $mom > [%default_host%]
+cat $PBS_NODEFILE >> [%default_host%]
+HOST_FILE="-hostfile [%default_host%]"
+n_proc=$(cat $PBS_NODEFILE | wc -l)
+NR_PROC="-n $(( $n_proc + 1 ))"
+
+# compute log option
+WORKER_LOG_FILE="-l [%logfile%]"
+
+# compute verbose option
+WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
+
+# load appropriate MPI implementation module
+[%IF unload_modules%]module unload [%unload_modules%][%END%]
+module load [%mpi_module%]
+
+# start the worker
+[%mpirun%] [%mpirun_options%] $NR_PROC $HOST_FILE \
+    "$WORKER_APPL" $WORKER_PROLOG $WORKER_BATCH $WORKER_EPILOG \
+                   $WORKER_LOG_FILE $WORKER_VERBOSE

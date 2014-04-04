@@ -1,0 +1,56 @@
+# directory and files to be created by worker
+  # temp dir template
+  dir_tmpl = .workerXXXX
+
+  # PBS script name and shebang (don't forget to escape shebang!)
+  pbs_file = worker.pbs
+  pbs_shebang = \#!/bin/bash -l
+  pbs_prefix = \#PBS
+
+  # extensions for files to be created in the working directory
+  # arrayid files
+  arrayid_ext = .array
+  # generated batch file
+  batch_ext   = .worker
+  # submit script
+  run_ext     = .run
+  # preprocessed batch, only generated in verbose mode
+  prepr_ext   = .pp
+
+# file name templates so that files are renamed consistently
+  # log name
+  default_log = ${PBS_JOBNAME}.log${WORKER_JOBID}
+  # generated batch name
+  default_sh  = ${PBS_JOBNAME}.sh${WORKER_JOBID}
+  # submit script name
+  default_run = ${PBS_JOBNAME}.run${WORKER_JOBID}
+  # prolog name
+  default_pro = ${PBS_JOBNAME}.pro${WORKER_JOBID}
+  # epilog name
+  default_epi = ${PBS_JOBNAME}.epi${WORKER_JOBID}
+  # PBS name
+  default_pbs = ${PBS_JOBNAME}.pbs${WORKER_JOBID}
+  # host name
+  default_host = ${PBS_JOBNAME}.host${WORKER_JOBID}
+
+# files to be found in the worker directory
+  # PBS template to complete
+  pbs_tmpl_dir = lib/tt
+  pbs_tmpl_ext = .tt
+  # worker header file to parse for separator
+  worker_hdr = conf/worker.h
+  # worker executable
+  worker = bin/worker
+
+# job submission command
+  qsub = QSUB_CMD
+
+# notification mail address
+  email = SUPPORT_EMAIL
+
+# MPI related configuration
+  unload_modules = UNLOAD_MODULES
+  mpi_module = MPI_MODULE
+  mpirun = MPIRUN_CMD
+  mpirun_options = MPIRUN_OPTIONS
+

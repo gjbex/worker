@@ -1,0 +1,12 @@
+#!/bin/bash -l
+#PBS -l walltime=00:20:00
+#PBS -l nodes=6:ppn=8
+
+module load intel_compiler
+cd $PBS_O_WORKDIR
+
+start_time=`date "+%s"`
+value=`./pi 1000000000`
+end_time=`date "+%s"`
+echo $PBS_ARRAYID $WORKER_RANK $value $start_time $end_time
+

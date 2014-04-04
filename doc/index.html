@@ -1,0 +1,170 @@
+<html>
+<head>
+<title>Worker: running many sequential jobs in parallel</title>
+</head>
+<body>
+<h1>Worker: running sequential jobs in parallel</h1>
+
+<h2>Rationale</h2>
+
+<p> The Worker framework has been developed to meet two specific use
+cases:
+<ul>
+<li> job arrays: replace the <tt>-t</tt> for array requests; this was an
+   experimental feature provided by the torque queue system, but it is
+   not supported by Moab, the current scheduler. </li>
+<li> many small jobs determined by parameter variations; the scheduler's
+   task is easier when it does not have to deal with too many jobs. </li>
+</ul>
+
+Both use cases often have a common root: the user wants to run a
+program with a large number of parameter settings, and the program
+does not allow for aggregation, i.e., it has to be run once for each
+instance of the parameter values. </p>
+
+<p> However, Worker's scope is wider: it can be used for any scenario
+that can be reduced to a <a
+href="http://en.wikipedia.org/wiki/MapReduce">MapReduce</a>
+approach. </p>
+
+<h2>Usage scenarios</h2>
+
+<h3>Job arrays</h3>
+
+The user prepares a PBS script that calls a program, e.g.,
+<tt>cfd-solver</tt>, that takes an parameter file specified on the
+command line.  The PBS file <tt>cfd.pbs</tt> could look something like:
+<pre>
+#!/bin/bash -l
+#PBS -N cfd-solver
+#PBS -l nodes=1
+#PBS -l walltime=00:05:00
+
+cd $PBS_O_WORKDIR
+
+cfd-solver -p parameters-$PBS_ARRAYID.cfg > result-$PBS_ARRAYID.dat
+</pre>
+
+For 100 parameter instances called
+<tt>parameters-1.cfg</tt>,...,<tt>parameters-100.cfg</tt>, the
+following obsolete <tt>qsub</tt> command would run <tt>cfd-solver</tt>
+on each of those 100 parameter files, saving the results of each run
+in <tt>result-1.dat</tt>, ..., <tt>result-100.dat</tt> respectively:
+<pre>
+qsub -t 1-100 cfd.pbs
+</pre>
+
+Each job in the job array was assigned a unique number between 1 and
+100 that is accessible via the shell variable <tt>$PBS_ARRAYID</tt>.
+
+Given that Moab does not support job arrays, Worker can now handle
+this setup transparently.
+
+<pre>
+module load worker
+wsub -t 1-100 -batch cfd.pbs -l nodes=8
+</pre>
+
+Notice that you have to request the number of nodes you want
+<tt>worker</tt> to use, multiples of 8 will be most efficient.  In
+this case, 7 nodes will do the work, so the speedup due to
+parallellization will be approximately 7.
+
+The <tt>wsub</tt> command takes all options that were valid for
+torque's <tt>qsub</tt>, notably the features and resources requested
+via the <tt>-l</tt> option.
+
+
+<h3>Parameter variations</h3>
+
+<p> A fairly common usage scenario is similar to the previous one,
+except that the parameter instances are to be provided on the command
+line, rather than in a configuration file.  By way of example,
+consider the parameters in the comma separated value (CSV) format in
+the file <tt>data.csv</tt> below:
+
+<pre>
+temperature,pressure,volume
+293.0,1.0e6,1.0
+294.0,1.0e6,1.0
+295.0,1.0e6,1.0
+296.0,1.0e6,1.0
+...
+</pre>
+
+These values can be supplied a program via the command line, e.g.,
+<tt>simulate -t 293.0 -p 1.0e6 -v 1.0</tt>. Now the user want to run
+<tt>simulate</tt> for each parameter set in <tt>data.csv</tt>.  First,
+the following PBS script <tt>simulate.pbs</tt> should be created:
+
+<pre>
+#!/bin/bash -l
+# PBS -N simulate
+
+simulate -t $temperature -p $pressure -v $volume
+</pre>
+
+Note that the variables <tt>$temperature</tt>, <tt>$pressure</tt>, and
+<tt>$volume</tt> correspond to the column names in <tt>data.csv</tt>
+
+The job can now be run using:
+<pre>
+module load worker
+wsub -data data.csv -batch simulate.pbs -l nodes=8
+</pre>
+
+Notice that you have to request the number of nodes you want
+<tt>worker</tt> to use, multiples of 8 will be most efficient.  In
+this case, 7 nodes will do the work, so the speedup due to
+parallellization will be approximately 7.
+
+The <tt>wsub</tt> command takes all options that were valid for
+torque's <tt>qsub</tt>, notably the features and resources requested
+via the <tt>-l</tt> option. </p>
+
+<h3>MapReduce</h3>
+
+<p> Using <tt>wsub</tt>'s <tt>-prolog</tt> and <tt>-epilog</tt>
+options, it is straightforward to implement MapReduce scenarios.  The
+shell scripts passed through <tt>-prolog</tt> and <tt>-epilog</tt> are
+processed by the worker master before any work is started, and after
+all work has been completed, respectively.  Hence the prolog shell
+script can be used to split the data in chuncks that can be handled by
+the slaves in parallel, while the epilog script can collect the
+results and postprocess them. </p>
+
+
+<h2><tt>wsub</tt> help</h2>
+
+<pre>
+usage: wsub  -batch <batch-file>          \
+             [-data <data-files>]         \
+             [-log <log-file>]            \
+             [-mpiverbose]                \
+             [-dryrun] [-verbose]         \
+             [-quiet] [-help]             \
+             [-t <array-req>]             \
+             [<pbs-qsub-options>]
+
+  -batch <batch-file>  : batch file template, containing variables to be
+                         replaced with data from the data file(s) or the
+                         PBS array request option
+  -data <data-files>   : comma-separated list of data files (default CSV
+                         files) used to provide the data for the work
+                         items
+  -mpiverbose          : pass verbose flag to the underlying MPI program
+  -verbose             : feedback information is written to standard error
+  -dryrun              : run without actually submitting the job, useful
+  -quiet               : don't show information
+  -help                : print this help message
+  -t <array-req>       : qsub's PBS array request options, e.g., 1-10
+  <pbs-qsub-options>   : options passed on to the queue submission
+                         command
+</pre>
+
+<hr/>
+<address>
+<a href="mailto:hpcinfo@icts.kuleuven.be">HPCInfo</a>
+</address>
+</body>
+</html>

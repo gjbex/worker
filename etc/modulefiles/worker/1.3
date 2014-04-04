@@ -1,0 +1,20 @@
+#%Module1.0#####################################################################
+##
+## Worker modulefile
+##
+proc ModulesHelp { } {
+        puts stderr "\t Worker framework"
+        puts stderr "\n\tVersion: 1.3 beta\n"
+}
+
+module-whatis   "Worker is a framework for submitting large amounts of sequential jobs in parallel"
+
+# for Tcl script use only
+set     version         1.3_beta
+set     approot         /apps/leuven/worker/1.3
+
+module load perl openmpi/1.4.3_intel
+
+prepend-path    PATH            $approot/bin
+setenv          WORKER_DIR      $approot
+
