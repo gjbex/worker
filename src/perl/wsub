@@ -82,6 +82,7 @@ my @data_files = ();
 my $log_file = undef;
 my $pbs_array_str = undef;
 my $mpi_verbose = undef;
+my $master = 0;
 my $job_name = undef;
 my $directive_prefix = undef;
 my $verbose = 0;
@@ -96,6 +97,7 @@ GetOptions(
         "log=s"           => \$log_file,
         "mpiverbose"      => \$mpi_verbose,
         "verbose"         => \$verbose,
+        "master"          => \$master,
         "dryrun"          => \$dryrun,
         "quiet"           => \$quiet,
         "help"            => \&show_help,
@@ -252,6 +254,7 @@ my $vars = {
     'worker'         => $worker,
     'verbose'        => $mpi_verbose,
     'prolog'         => $prolog_file,
+    'master'         => $master,
     'epilog'         => $epilog_file,
     'logfile'        => $log_file,
     'basename'       => $batch_tmpl_file,
@@ -402,6 +405,7 @@ sub print_help {
 #                [-epilog <epilog-file>]      \\
 #                [-log <log-file>]            \\
 #                [-mpiverbose]                \\
+#                [-nomaster]                  \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
 #                [-t <array-req>]             \\
@@ -422,6 +426,8 @@ sub print_help {
 #   -dryrun               : run without actually submitting the job, useful
 #   -quiet                : don't show information
 #   -help                 : print this help message
+#   -master               : start an extra master process, i.e.,
+#                           the number of slaves will be nodes*ppn
 #   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
 #   <pbs-qsub-options>    : options passed on to the queue submission
 #                           command
