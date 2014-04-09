@@ -29,12 +29,14 @@ WORKER_EPILOG="[%IF epilog%]-e [%default_epi%][%END%]"
 rm -rf [%dir%]
 
 # create host file to use for this job and compute number of cores
+[%IF master%]
 mom=`head -1 $PBS_NODEFILE`
 echo $mom > [%default_host%]
 cat $PBS_NODEFILE >> [%default_host%]
 HOST_FILE="-hostfile [%default_host%]"
 n_proc=$(cat $PBS_NODEFILE | wc -l)
 NR_PROC="-n $(( $n_proc + 1 ))"
+[%END%]
 
 # compute log option
 WORKER_LOG_FILE="-l [%logfile%]"
