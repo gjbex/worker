@@ -27,3 +27,6 @@ autom4te.cache
 .deps
 config.status
 config.log
+
+src/worker
+conf/worker.conf
