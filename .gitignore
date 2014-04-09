@@ -21,3 +21,9 @@
 *.i*86
 *.x86_64
 *.hex
+
+Makefile
+autom4te.cache
+.deps
+config.status
+config.log
