@@ -21,7 +21,13 @@ use Worker::ExecutedTasksFilter;
 use Worker::Utils qw( parse_hdr check_file compute_file_extension msg );
 
 # directory containing the Worker software
-my $worker_dir = $ENV{WORKER_DIR};
+my $worker_dir = undef;
+if (exists $ENV{WORKER_DIR} && defined $ENV{WORKER_DIR} &&
+        length($ENV{WORKER_DIR}) > 0) {
+    $worker_dir = "$ENV{WORKER_DIR}";
+} else {
+    $worker_dir = "$FindBin::Bin/..";
+}
 $worker_dir .= '/' unless length($worker_dir) == 0 || $worker_dir =~ m|/$|;
 check_file($worker_dir, 'worker directory', 1, 1);
 
