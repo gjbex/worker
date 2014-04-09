@@ -6,7 +6,6 @@ package Pbs::Parser;
 use strict;
 use warnings;
 
-use lib "$ENV{WORKER_DIR}/lib/perl";
 use Pbs::Description;
 
 # ----------------------------------------------------------------------------
