@@ -29,4 +29,3 @@ config.status
 config.log
 
 src/worker
-conf/worker.conf
