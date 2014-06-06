@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Config::General;
+use FindBin;
 use Getopt::Long;
 use IO::File;
 use Set::Scalar;

@@ -48,6 +48,9 @@ WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
 [%IF unload_modules%]module unload [%unload_modules%][%END%]
 module load [%mpi_module%]
 
+# determine the number of prcesses, only needed for Intel MPI mpirun
+n_proc=$(cat $PBS_NODEFILE | wc -l)
+
 # start the worker
 [%mpirun%] [%mpirun_options%] $NR_PROC $HOST_FILE \
     "$WORKER_APPL" $WORKER_PROLOG $WORKER_BATCH $WORKER_EPILOG \

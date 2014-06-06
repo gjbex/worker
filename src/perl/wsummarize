@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Config::General;
 use Data::Dumper;
+use FindBin;
 use Getopt::Long;
 
 sub BEGIN {

@@ -6,6 +6,7 @@ use Data::Dumper;
 use Config::General;
 use File::Copy;
 use File::Temp qw/ tempdir /;
+use FindBin;
 use Getopt::Long;
 use IO::Dir;
 use IO::Scalar;
