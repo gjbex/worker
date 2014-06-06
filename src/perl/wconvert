@@ -6,6 +6,7 @@ use Data::Dumper;
 use warnings;
 use File::Basename;
 use File::Temp qw( tempfile );
+use FindBin;
 use Getopt::Long;
 use IO::File;
 
