@@ -28,6 +28,7 @@ WORKER_EPILOG="[%IF epilog%]-e [%default_epi%][%END%]"
 
 rm -rf [%dir%]
 
+# only applicable when the master switch is on
 # create host file to use for this job and compute number of cores
 [%IF master%]
 mom=`head -1 $PBS_NODEFILE`
@@ -36,6 +37,16 @@ cat $PBS_NODEFILE >> [%default_host%]
 HOST_FILE="-hostfile [%default_host%]"
 n_proc=$(cat $PBS_NODEFILE | wc -l)
 NR_PROC="-n $(( $n_proc + 1 ))"
+[%END%]
+
+# only applicable when the threaded swith is on
+[%IF threaded%]
+n_nodes=$(cat $PBS_NODEFILE | uniq | wc -l)
+ppn="[%ppn%]"
+n_proc=$(($ppn * $n_nodes))
+NR_PROC="-np $n_proc"
+# ensure correct distribution of processes over sockets
+export I_MPI_PIN_DOMAIN=socket
 [%END%]
 
 # compute log option
