@@ -265,16 +265,18 @@ if ($threaded) {
         $resource_str = $pbs->get_resources();
     }
     $resources = $pbs_parser->parse_pbs_resources($resource_str);
-    if (exists($resources->{'ppn'})) {
-        $ppn = $resources->{'ppn'};
+    if (exists($resources->{'nodes'}) &&
+            exists($resources->{'nodes'}->{'ppn'})) {
+        $ppn = $resources->{'nodes'}->{'ppn'};
     }
 }
+msg("ppn set to $ppn");
 
 # if the work items are threaded, replace a ppn by the hardware default,
 # otherise leave unmodified
 my $pbs_directives = $pbs->get_pbs();
 if ($threaded) {
-    $pbs_directives =~ s/\b(xppn\s*=\s*x)\d+/ppn=$cores_per_node/g;
+    $pbs_directives =~ s/\bppn\s*=\s*\d+/ppn=$cores_per_node/g;
 }
 
 # initialize the variables to fill out the PBS template, and create
@@ -302,6 +304,7 @@ my $vars = {
     'run_ext'        => $run_ext,
     'pbs_file'       => $pbs_file,
     'unload_modules' => $conf{unload_modules},
+    'threaded'       => $threaded,
     'ppn'            => $ppn,
     'mpi_module'     => $conf{mpi_module},
     'mpirun'         => $conf{mpirun},

@@ -73,8 +73,16 @@ sub parse_pbs_resources {
     $pbs_resources = {} unless defined $pbs_resources;
     my @resources = split(/,/, $pbs_resource_str);
     foreach my $resource (@resources) {
-	my ($key, $value) = split(/=/, $resource);
-	$pbs_resources->{$key} = $value;
+        my ($key, $value) = split(/\s*=\s*/, $resource, 2);
+        if ($key eq 'nodes') {
+            my @attrs = split(/\s*:\s*/, $value);
+            $value = {'nodes' => shift(@attrs)};
+            foreach my $attr (@attrs) {
+                my ($k, $v) = split(/\s*=\s*/, $attr, 2);
+                $value->{$k} = $v;
+            }
+        }
+        $pbs_resources->{$key} = $value;
     }
     return $pbs_resources;
 }
