@@ -182,33 +182,64 @@ $ wresume -jobid 445948 -retry
 ```
 By default, a job's prologue is not executed when it is resumed, while its epilogue is. 'wresume' has options to modify this default behavior.
 
-Further information
+Multithreaded work items
+------------------------
+If a work item uses threading, the execution of a worker job is very
+similar to that of a hybrid MPI/OpenMP application, and in compbination
+with CPU sets, similar measures should be taken to ensure efficient
+execution.  `worker` supports this through the `-threaded` flag.
+For example, assume a compute node has 20 cores, and a work item runs
+efficiently usinng 4 threads, then the following resource specification
+would be appropriate:
+```
+wsub  -lnodes=4:ppn=5  -threaded  ...
+```
+`worker ensures that all cores are in the CPU set for the job, but will
+not compute more than 5 work items on a node, so that each work item
+can use 4 cores.
 
+Further information
+-------------------
 This how-to introduces only Worker's basic features. The wsub command has some usage information that is printed when the -help option is specified:
 ```
-### usage: wsub  -batch <batch-file>          \
-#                [-data <data-files>]         \
-#                [-log <log-file>]            \
-#                [-mpiverbose]                \
-#                [-dryrun] [-verbose]         \
-#                [-quiet] [-help]             \
-#                [-t <array-req>]             \
+### usage: wsub  -batch <batch-file>          \\
+#                [-data <data-files>]         \\
+#                [-prolog <prolog-file>]      \\
+#                [-epilog <epilog-file>]      \\
+#                [-log <log-file>]            \\
+#                [-mpiverbose]                \\
+#                [-master]                    \\
+#                [-threaded]                  \\
+#                [-dryrun] [-verbose]         \\
+#                [-quiet] [-help]             \\
+#                [-t <array-req>]             \\
 #                [<pbs-qsub-options>]
 #
-#   -batch <batch-file>  : batch file template, containing variables to be
-#                          replaced with data from the data file(s) or the
-#                          PBS array request option
-#   -data <data-files>   : comma-separated list of data files (default CSV
-#                          files) used to provide the data for the work
-#                          items
-#   -mpiverbose          : pass verbose flag to the underlying MPI program
-#   -verbose             : feedback information is written to standard error
-#   -dryrun              : run without actually submitting the job, useful
-#   -quiet               : don't show information
-#   -help                : print this help message
-#   -t <array-req>       : qsub's PBS array request options, e.g., 1-10
-#   <pbs-qsub-options>   : options passed on to the queue submission
-#                          command
+#   -batch <batch-file>   : batch file template, containing variables to be
+#                           replaced with data from the data file(s) or the
+#                           PBS array request option
+#   -data <data-files>    : comma-separated list of data files (default CSV
+#                           files) used to provide the data for the work
+#                           items
+#   -prolog <prolog-file> : prolog script to be executed before any of the
+#                           work items are executed
+#   -epilog <epilog-file> : epilog script to be executed after all the work
+#                           items are executed
+#   -mpiverbose           : pass verbose flag to the underlying MPI program
+#   -verbose              : feedback information is written to standard error
+#   -dryrun               : run without actually submitting the job, useful
+#   -quiet                : don't show information
+#   -help                 : print this help message
+#   -master               : start an extra master process, i.e.,
+#                           the number of slaves will be nodes*ppn
+#   -threaded             : indicates that work items are multithreaded,
+#                           ensures that CPU sets will have all cores,
+#                           regardless of ppn, hence each work item will
+#                           have <total node cores>/ppn cores for its
+#                           threads
+#   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
+#   <pbs-qsub-options>    : options passed on to the queue submission
+#                           command
 ```
 
 Troubleshooting
