@@ -72,6 +72,9 @@ my $worker = "${worker_dir}$conf{worker}";          # worker executable
 my $qsub = $conf{qsub};       # qsub command to use in run script
 my $email = $conf{email};     # email to send complaints to
 
+# number of cores per node (hardware property)
+my $cores_per_node = $conf{cores_per_node};
+
 # test whether necessary files can be found and read
 check_file($pbs_tmpl, "PBS file template", 1, 0, $email);
 check_file($worker_hdr, "worker header file", 1, 0, $email);
@@ -89,6 +92,7 @@ my $log_file = undef;
 my $pbs_array_str = undef;
 my $mpi_verbose = undef;
 my $master = 0;
+my $threaded = 0;
 my $job_name = undef;
 my $directive_prefix = undef;
 my $verbose = 0;
@@ -104,6 +108,7 @@ GetOptions(
         "mpiverbose"      => \$mpi_verbose,
         "verbose"         => \$verbose,
         "master"          => \$master,
+        "threaded"        => \$threaded,
         "dryrun"          => \$dryrun,
         "quiet"           => \$quiet,
         "help"            => \&show_help,
@@ -250,19 +255,45 @@ if ($pbs->has_shebang()) {
     print STDERR "#            please refer to qsub's man page\n";
 }
 
+# determine requested ppn, default to hardware value, but only bother
+# when work items are threaded
+my $ppn = $cores_per_node;
+if ($threaded) {
+    my $resources = undef;
+    my $resource_str = get_cmd_line_resources(@ARGV);
+    if (!defined($resource_str)) {
+        $resource_str = $pbs->get_resources();
+    }
+    $resources = $pbs_parser->parse_pbs_resources($resource_str);
+    if (exists($resources->{'nodes'}) &&
+            exists($resources->{'nodes'}->{'ppn'})) {
+        $ppn = $resources->{'nodes'}->{'ppn'};
+    }
+}
+msg("ppn set to $ppn");
+
+# if the work items are threaded, replace a ppn by the hardware default,
+# otherise leave unmodified
+my $pbs_directives = $pbs->get_pbs();
+if ($threaded) {
+    $pbs_directives =~ s/\bppn\s*=\s*\d+/ppn=$cores_per_node/g;
+}
+
 # initialize the variables to fill out the PBS template, and create
 # PBS file
 msg("creating PBS file..");
 my $vars = {
     'shebang'        => $pbs_shebang,
-    'pbs'            => $pbs->get_pbs(),
+    'pbs'            => $pbs_directives,
     'dir'            => "$dir/",
     'worker'         => $worker,
     'verbose'        => $mpi_verbose,
     'prolog'         => $prolog_file,
-    'master'         => $master,
     'epilog'         => $epilog_file,
     'logfile'        => $log_file,
+    'master'         => $master,
+    'threaded'       => $threaded,
+    'ppn'            => $ppn,
     'basename'       => $batch_tmpl_file,
     'default_log'    => $default_log,
     'default_pro'    => $default_pro,
@@ -275,6 +306,8 @@ my $vars = {
     'run_ext'        => $run_ext,
     'pbs_file'       => $pbs_file,
     'unload_modules' => $conf{unload_modules},
+    'threaded'       => $threaded,
+    'ppn'            => $ppn,
     'mpi_module'     => $conf{mpi_module},
     'mpirun'         => $conf{mpirun},
     'mpirun_options' => $conf{mpirun_options},
@@ -401,6 +434,29 @@ sub create_run_cmd {
 }
 
 # ----------------------------------------------------------------------------
+# compute the requested resources from the command line arguments
+# ----------------------------------------------------------------------------
+sub get_cmd_line_resources {
+    my @values = ();
+    while (@_) {
+        my $option = shift(@_);
+        if ($option eq '-l') {
+            if (@_) {
+                my $value = shift(@_);
+                push(@values, $value);
+            }
+        } elsif ($option =~ /^-l(.+)$/) {
+            push(@values, $1);
+        }
+    }
+    if (@values) {
+        return join(',', @values);
+    } else {
+        return undef;
+    }
+}
+
+# ----------------------------------------------------------------------------
 # print the script's help stuff
 # ----------------------------------------------------------------------------
 sub print_help {
@@ -411,7 +467,8 @@ sub print_help {
 #                [-epilog <epilog-file>]      \\
 #                [-log <log-file>]            \\
 #                [-mpiverbose]                \\
-#                [-nomaster]                  \\
+#                [-master]                    \\
+#                [-threaded]                  \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
 #                [-t <array-req>]             \\
@@ -434,6 +491,11 @@ sub print_help {
 #   -help                 : print this help message
 #   -master               : start an extra master process, i.e.,
 #                           the number of slaves will be nodes*ppn
+#   -threaded             : indicates that work items are multithreaded,
+#                           ensures that CPU sets will have all cores,
+#                           regardless of ppn, hence each work item will
+#                           have <total node cores>/ppn cores for its
+#                           threads
 #   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
 #   <pbs-qsub-options>    : options passed on to the queue submission
 #                           command
