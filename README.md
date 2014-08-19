@@ -137,7 +137,11 @@ Worker is implemented using MPI, so it is not restricted to a single compute nod
 Worker will be effective when
   * work items, i.e., individual computations, are neither too short, nor too long (i.e., from a few minutes to a few hours); and,
   * when the number of work items is larger than the number of CPUs involved in the job (e.g., more than 30 for 8 CPUs).
-  * 
+
+Also note that the total execution time of a job consisting of work items
+that could be executed using multiple threads will be lower when using
+a single thread, provided the number of work items is larger than the
+number of cores.
 
 Monitoring a worker job
 -----------------------
@@ -182,48 +186,92 @@ $ wresume -jobid 445948 -retry
 ```
 By default, a job's prologue is not executed when it is resumed, while its epilogue is. 'wresume' has options to modify this default behavior.
 
-Further information
+Multithreaded work items
+------------------------
+If a work item uses threading, the execution of a `worker` job is very
+similar to that of a hybrid MPI/OpenMP application, and in compbination
+with CPU sets, similar measures should be taken to ensure efficient
+execution.  `worker` supports this through the `-threaded` flag.
+For example, assume a compute node has 20 cores, and a work item runs
+efficiently usinng 4 threads, then the following resource specification
+would be appropriate:
+```
+wsub  -lnodes=4:ppn=5  -threaded  ...
+```
+`worker` ensures that all cores are in the CPU set for the job, but will
+not compute more than 5 work items on a node, so that each work item
+can use 4 cores.
 
+Further information
+-------------------
 This how-to introduces only Worker's basic features. The wsub command has some usage information that is printed when the -help option is specified:
 ```
-### usage: wsub  -batch <batch-file>          \
-#                [-data <data-files>]         \
-#                [-log <log-file>]            \
-#                [-mpiverbose]                \
-#                [-dryrun] [-verbose]         \
-#                [-quiet] [-help]             \
-#                [-t <array-req>]             \
+### usage: wsub  -batch <batch-file>          \\
+#                [-data <data-files>]         \\
+#                [-prolog <prolog-file>]      \\
+#                [-epilog <epilog-file>]      \\
+#                [-log <log-file>]            \\
+#                [-mpiverbose]                \\
+#                [-master]                    \\
+#                [-threaded]                  \\
+#                [-dryrun] [-verbose]         \\
+#                [-quiet] [-help]             \\
+#                [-t <array-req>]             \\
 #                [<pbs-qsub-options>]
 #
-#   -batch <batch-file>  : batch file template, containing variables to be
-#                          replaced with data from the data file(s) or the
-#                          PBS array request option
-#   -data <data-files>   : comma-separated list of data files (default CSV
-#                          files) used to provide the data for the work
-#                          items
-#   -mpiverbose          : pass verbose flag to the underlying MPI program
-#   -verbose             : feedback information is written to standard error
-#   -dryrun              : run without actually submitting the job, useful
-#   -quiet               : don't show information
-#   -help                : print this help message
-#   -t <array-req>       : qsub's PBS array request options, e.g., 1-10
-#   <pbs-qsub-options>   : options passed on to the queue submission
-#                          command
+#   -batch <batch-file>   : batch file template, containing variables to be
+#                           replaced with data from the data file(s) or the
+#                           PBS array request option
+#   -data <data-files>    : comma-separated list of data files (default CSV
+#                           files) used to provide the data for the work
+#                           items
+#   -prolog <prolog-file> : prolog script to be executed before any of the
+#                           work items are executed
+#   -epilog <epilog-file> : epilog script to be executed after all the work
+#                           items are executed
+#   -mpiverbose           : pass verbose flag to the underlying MPI program
+#   -verbose              : feedback information is written to standard error
+#   -dryrun               : run without actually submitting the job, useful
+#   -quiet                : don't show information
+#   -help                 : print this help message
+#   -master               : start an extra master process, i.e.,
+#                           the number of slaves will be nodes*ppn
+#   -threaded             : indicates that work items are multithreaded,
+#                           ensures that CPU sets will have all cores,
+#                           regardless of ppn, hence each work item will
+#                           have <total node cores>/ppn cores for its
+#                           threads
+#   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
+#   <pbs-qsub-options>    : options passed on to the queue submission
+#                           command
 ```
 
 Troubleshooting
 ---------------
-The most common problem with the Worker framework is that it doesn't seem to work at all, showing messages in the error file about module failing to work.  The cause is trivial, and easy to remedy.
+The most common problem with the `worker` framework is that it doesn't
+seem to work at all, showing messages in the error file about module
+failing to work.  The cause is trivial, and easy to remedy.
 
 Like any PBS script, a worker PBS file has to be in UNIX format!
 
-If you edited a PBS script on your desktop, or something went wrong during sftp/scp, the PBS file may end up in DOS/Windows format, i.e., it has the wrong line endings.  The PBS/torque queue system can not deal with that, so you will have to convert the file, e.g., for file 'run.pbs'
+If you edited a PBS script on your desktop, or something went wrong
+during sftp/scp, the PBS file may end up in DOS/Windows format, i.e.,
+it has the wrong line endings.  The PBS/torque queue system can not
+deal with that, so you will have to convert the file, e.g., for
+file `run.pbs`:
 ```
 $ dos2unix run.pbs
 ```
 
+Changes
+-------
+New in version 1.5.0
+  * Support for multithreaded work items
+
 Development
 -----------
-This application is developed by Geert Jan Bex, Hasselt University/KU Leuven (geertjan.bex@uhasselt.be).  Although the code is publicly available
-on itHub, it is nevertheless an internal tool, so no support under any
-from is guaranteed, although it may be provided.
+This application is developed by Geert Jan Bex, Hasselt
+University/Leuven University (geertjan.bex@uhasselt.be).  Although the
+code is publicly available on GitHub, it is nevertheless an internal
+tool, so no support under any form is guaranteed, although it may
+be provided.

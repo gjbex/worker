@@ -137,29 +137,45 @@ results and postprocess them. </p>
 <h2><tt>wsub</tt> help</h2>
 
 <pre>
-usage: wsub  -batch <batch-file>          \
-             [-data <data-files>]         \
-             [-log <log-file>]            \
-             [-mpiverbose]                \
-             [-dryrun] [-verbose]         \
-             [-quiet] [-help]             \
-             [-t <array-req>]             \
-             [<pbs-qsub-options>]
 
-  -batch <batch-file>  : batch file template, containing variables to be
-                         replaced with data from the data file(s) or the
-                         PBS array request option
-  -data <data-files>   : comma-separated list of data files (default CSV
-                         files) used to provide the data for the work
-                         items
-  -mpiverbose          : pass verbose flag to the underlying MPI program
-  -verbose             : feedback information is written to standard error
-  -dryrun              : run without actually submitting the job, useful
-  -quiet               : don't show information
-  -help                : print this help message
-  -t <array-req>       : qsub's PBS array request options, e.g., 1-10
-  <pbs-qsub-options>   : options passed on to the queue submission
-                         command
+### usage: wsub  -batch <batch-file>          \\
+#                [-data <data-files>]         \\
+#                [-prolog <prolog-file>]      \\
+#                [-epilog <epilog-file>]      \\
+#                [-log <log-file>]            \\
+#                [-mpiverbose]                \\
+#                [-master]                    \\
+#                [-threaded]                  \\
+#                [-dryrun] [-verbose]         \\
+#                [-quiet] [-help]             \\
+#                [-t <array-req>]             \\
+#                [<pbs-qsub-options>]
+#
+#   -batch <batch-file>   : batch file template, containing variables to be
+#                           replaced with data from the data file(s) or the
+#                           PBS array request option
+#   -data <data-files>    : comma-separated list of data files (default CSV
+#                           files) used to provide the data for the work
+#                           items
+#   -prolog <prolog-file> : prolog script to be executed before any of the
+#                           work items are executed
+#   -epilog <epilog-file> : epilog script to be executed after all the work
+#                           items are executed
+#   -mpiverbose           : pass verbose flag to the underlying MPI program
+#   -verbose              : feedback information is written to standard error
+#   -dryrun               : run without actually submitting the job, useful
+#   -quiet                : don't show information
+#   -help                 : print this help message
+#   -master               : start an extra master process, i.e.,
+#                           the number of slaves will be nodes*ppn
+#   -threaded             : indicates that work items are multithreaded,
+#                           ensures that CPU sets will have all cores,
+#                           regardless of ppn, hence each work item will
+#                           have <total node cores>/ppn cores for its
+#                           threads
+#   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
+#   <pbs-qsub-options>    : options passed on to the queue submission
+#                           command
 </pre>
 
 <hr/>
