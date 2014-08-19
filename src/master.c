@@ -51,12 +51,18 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
   }
   /* start reading batch jobs from the batch file */
   while ((batch = readCmd(dataFp, WORK_STR_LENGTH)) != NULL) {
+    MPI_Request request;
+    int done = 0;
     jobId++;
     if (verbose)
       fprintf(stderr, "### msg: processing job %d\n", jobId);
     /* wait for a slave to request work, by receiving either READY or DONE */
-    MPI_Recv(&jobExitInfo, 1, jobExitInfoType,
-	     MPI_ANY_SOURCE, CMD_TAG, MPI_COMM_WORLD, &status);
+    MPI_Irecv(&jobExitInfo, 1, jobExitInfoType,
+	     MPI_ANY_SOURCE, CMD_TAG, MPI_COMM_WORLD, &request);
+    while (!done) {
+        MPI_Test(&request, &done, &status);
+        usleep(100000);
+    }
     int slaveRank = status.MPI_SOURCE;
     /* if jobId was non-zero, log the jobId that this slave completed */
     if (jobExitInfo.jobId != 0 && logFp != NULL)
