@@ -116,8 +116,8 @@ $ wsub -t 1-100  -batch run.pbs
 ```
 The cfd-test program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.
 
-MapReduce: prologues and epilogue
----------------------------------
+MapReduce: prologue and epilogue
+--------------------------------
 Often, an embarrassingly parallel computation can be abstracted to three simple steps:
 
 a preparation phase in which the data is split up into smaller, more manageable chuncks;
