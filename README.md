@@ -202,6 +202,14 @@ wsub  -lnodes=4:ppn=5  -threaded  ...
 not compute more than 5 work items on a node, so that each work item
 can use 4 cores.
 
+In order to allow interoperability with tools such as numactl or other
+thread-pinning software, two variables are made available to job scripts:
+`WORKER_RAND` and `WORKER_SIZE`.  These represent the rank of the slave
+in the MPI communicator and the latter's size.  This allows to compute
+the placements of the processes started in work items with respect to the
+CPU set of the node they are running on.  This can be useful to control
+the number of threads used by individual work items.
+
 Further information
 -------------------
 This how-to introduces only Worker's basic features. The wsub command has some usage information that is printed when the -help option is specified:
