@@ -275,6 +275,7 @@ Changes
 -------
 New in version 1.5.1
   * PBS scripts can use `WORKER_RANK` and `WORKER_SIZE` for process binding
+  
 New in version 1.5.0
   * Support for multithreaded work items
 
