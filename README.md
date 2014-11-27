@@ -204,7 +204,7 @@ can use 4 cores.
 
 In order to allow interoperability with tools such as numactl or other
 thread-pinning software, two variables are made available to job scripts:
-`WORKER_RAND` and `WORKER_SIZE`.  These represent the rank of the slave
+`WORKER_RANK` and `WORKER_SIZE`.  These represent the rank of the slave
 in the MPI communicator and the latter's size.  This allows to compute
 the placements of the processes started in work items with respect to the
 CPU set of the node they are running on.  This can be useful to control
@@ -273,6 +273,8 @@ $ dos2unix run.pbs
 
 Changes
 -------
+New in version 1.5.1
+  * PBS scripts can use `WORKER_RANK` and `WORKER_SIZE` for process binding
 New in version 1.5.0
   * Support for multithreaded work items
 
