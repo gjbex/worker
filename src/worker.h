@@ -21,7 +21,7 @@ typedef struct {
 extern MPI_Datatype jobInfoType, jobExitInfoType;
 
 /* initial length of the char array that will hold a batch script */
-#define WORK_STR_LENGTH 4096
+#define WORK_STR_LENGTH 1048576
 
 /* interpreter to use by the slaves for the batch scripts */
 #define BASH "/bin/bash -l"
