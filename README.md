@@ -273,6 +273,9 @@ $ dos2unix run.pbs
 
 Changes
 -------
+Changed in version 1.5.2
+  * increased WORK_STR_LENGTH from 4 kb to 1 Mb
+
 New in version 1.5.1
   * PBS scripts can use `WORKER_RANK` and `WORKER_SIZE` for process binding
   
