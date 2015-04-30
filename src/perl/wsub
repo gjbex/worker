@@ -98,24 +98,28 @@ my $directive_prefix = undef;
 my $verbose = 0;
 my $dryrun = undef;
 my $quiet = 0;
+my $allow_loose_quotes = undef;
+my $escape_char = undef;
 
 GetOptions(
-        "prolog=s"        => \$prolog_file,
-        "batch=s"         => \$batch_tmpl,
-        "epilog=s"        => \$epilog_file,
-        "data=s"          => \@data_files,
-        "log=s"           => \$log_file,
-        "mpiverbose"      => \$mpi_verbose,
-        "verbose"         => \$verbose,
-        "master"          => \$master,
-        "threaded"        => \$threaded,
-        "dryrun"          => \$dryrun,
-        "quiet"           => \$quiet,
-        "help"            => \&show_help,
+        "prolog=s"             => \$prolog_file,
+        "batch=s"              => \$batch_tmpl,
+        "epilog=s"             => \$epilog_file,
+        "data=s"               => \@data_files,
+        "log=s"                => \$log_file,
+        "mpiverbose"           => \$mpi_verbose,
+        "verbose"              => \$verbose,
+        "master"               => \$master,
+        "threaded"             => \$threaded,
+        "dryrun"               => \$dryrun,
+        "quiet"                => \$quiet,
+        "allow_loose_quotes"   => \$allow_loose_quotes,
+        "escape_char=s"        => \$escape_char,
+        "help"                 => \&show_help,
 # qsub options that have to be intercepted
-        "N=s"             => \$job_name,
-        "C=s"             => \$directive_prefix,
-        "t=s"             => \$pbs_array_str,
+        "N=s"                  => \$job_name,
+        "C=s"                  => \$directive_prefix,
+        "t=s"                  => \$pbs_array_str,
         );
 # if there are additional qsub options, they are in @ARGV and will
 # be passed to qsub
@@ -190,14 +194,18 @@ my $arrayid_file_name = "${batch_tmpl}${arrayid_ext}";
 if (defined $pbs_array_str) {
     create_arrayid_file($arrayid_file_name,
             $pbs_parser->parse_arrayid_str($pbs_array_str));
-    push(@providers, Worker::CsvProvider->new($arrayid_file_name));
+    push(@providers, Worker::CsvProvider->new($arrayid_file_name,
+                                              $allow_loose_quotes,
+                                              $escape_char));
     msg("array id provider created");
 }
 
 # create the appropriate provider
 foreach my $data_file (@data_files) {
     eval {
-        push(@providers, Worker::CsvProvider->new($data_file));
+        push(@providers, Worker::CsvProvider->new($data_file,
+                                                  $allow_loose_quotes,
+                                                  $escape_char));
     };
     if ($@) {
         print STDERR "### error parsing '$data_file': $@";
@@ -228,6 +236,7 @@ unless (open($fh, ">$batch_file")) {
 }
 while ($provider->has_next()) {
     $job_size++;
+    msg("work item $job_size...");
     my $vars = $provider->get_next();
     unless ($engine->process(\$batch_str, $vars, $fh)) {
         print STDERR "### error: problem with template,\n";
@@ -488,7 +497,6 @@ sub print_help {
 #   -verbose              : feedback information is written to standard error
 #   -dryrun               : run without actually submitting the job, useful
 #   -quiet                : don't show information
-#   -help                 : print this help message
 #   -master               : start an extra master process, i.e.,
 #                           the number of slaves will be nodes*ppn
 #   -threaded             : indicates that work items are multithreaded,
@@ -497,6 +505,13 @@ sub print_help {
 #                           have <total node cores>/ppn cores for its
 #                           threads
 #   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
+#   -help                 : print this help message
+#   -allow_loose_quotes   : enable CSV loose quote parsing mode, do not
+#                           use this unless you really know what you are
+#                           doing
+#   -escape_char <c>      : use <c> as escape character for the CSV parser,
+#                           do not use this unless you really know what
+#                           you are doing
 #   <pbs-qsub-options>    : options passed on to the queue submission
 #                           command
 EOI

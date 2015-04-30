@@ -9,13 +9,16 @@ use Text::CSV;
 # constructor, takes the name of a CSV file
 # ------------------------------------------------------------------------
 sub new {
-    my ($pkg, $file) = @_;
+    my ($pkg, $file, $allow_loose_quotes, $escape_char) = @_;
+    $escape_char = '\\' unless (defined($escape_char));
     my $self = bless {
-	file       => $file,
-	cvs        => undef,
-	fh         => undef,
-	vars       => [],
-	current    => undef,
+        file               => $file,
+        csv                => undef,
+        fh                 => undef,
+        vars               => [],
+        current            => undef,
+        allow_loose_quotes => $allow_loose_quotes,
+        escape_char        => $escape_char
 	}, $pkg;
     $self->init(@_);
     return $self;
@@ -76,7 +79,12 @@ sub destroy {
 # ------------------------------------------------------------------------
 sub init {
     my $self = shift(@_);
-    $self->{csv} = Text::CSV->new() or
+    my $options = {binary => 1};
+    if (defined($self->{allow_loose_quotes})) {
+        $options->{allow_loose_quotes} = $self->{allow_loose_quotes};
+        $options->{escape_char} = $self->{escape_char};
+    }
+    $self->{csv} = Text::CSV->new($options) or
         die("### error: can't init CSV " . Text::CSV->error_diag());
     open($self->{fh}, $self->{file}) or
         croak("### error: can't open file '$self->{file}': $!\n");
@@ -98,4 +106,3 @@ sub init {
 }
 
 1;
-
