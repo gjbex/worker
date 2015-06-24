@@ -1,4 +1,4 @@
-/* --------------------------------------------------------------------------
+/* --------------------------------------------------------------------
   Worker provides a master/slave setup for batch jobs.  A file with
   batch jobs separated by SEPARATOR is provided.  This file is parsed
   by the master, who sends each of the jobs to a slave using MPI for
@@ -8,7 +8,7 @@
   can handle fork() correctly.  To avoid warnings under OpenMPI, call
   mpirun with '-mca mpi_warn_on_fork 0'.
 
-  -------------------------------------------------------------------------- */
+  --------------------------------------------------------------------- */
 
 #include <mpi.h>
 #include <stdlib.h>
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
     char *epilogFile = NULL;
     char *logFile = NULL;
     char optChar = '\0';
+    unsigned int sleepTime = DEFAULT_USLEEP;
     while ((optChar = getopt(argc, argv, "p:b:e:l:vh")) != -1) {
         switch (optChar) {
             case 'p':
@@ -53,6 +54,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'v':
                 verbose = 1;
+                break;
+            case 's':
+                sleepTime = (unsigned int) atoi(optarg);
                 break;
             case 'h':
                 printHelp();
@@ -88,7 +92,7 @@ int main(int argc, char *argv[]) {
     /* do the actual work, either as master, or as slave */
     if (rank == 0) {
         exitStatus = master(prologFile, batchFile, epilogFile, logFile,
-                            verbose);
+                            sleepTime, verbose);
         if (exitStatus != EXIT_SUCCESS)
             MPI_Abort(MPI_COMM_WORLD, 2);
     } else {

@@ -15,7 +15,7 @@ void logJob(FILE *logFp, const int rank, const int jobId,
 
 /* master process logic */
 int master(char *prologFile, char *batchFile, char *epilogFile,
-           char *logFile, int verbose) {
+           char *logFile, const unsigned int sleepTime, int verbose) {
     if (verbose)
         fprintf(stderr, "### msg: starting master\n");
     /* open the log file, warn on failure */
@@ -65,7 +65,7 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
                   MPI_ANY_SOURCE, CMD_TAG, MPI_COMM_WORLD, &request);
         while (!done) {
             MPI_Test(&request, &done, &status);
-            usleep(100000);
+            usleep(sleepTime);
         }
         int slaveRank = status.MPI_SOURCE;
         /* if jobId was non-zero, log the jobId that this slave completed */
