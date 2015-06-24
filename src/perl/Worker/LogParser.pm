@@ -28,6 +28,7 @@ sub reset {
     my $self = shift(@_);
     $self->{completed}->clear;
     $self->{failed}->clear;
+    $self->{started}->clear;
 }
 
 # ----------------------------------------------------------------------
