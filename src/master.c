@@ -10,7 +10,8 @@
 int executeScript(char *script, char *name, int verbose);
 int execute(char *script);
 char *readCmd(FILE *stream, int initLength);
-void logJob(FILE *logFp, const int jobId, int exitStatus);
+void logJob(FILE *logFp, const int rank, const int jobId,
+            const int exitStatus);
 
 /* master process logic */
 int master(char *prologFile, char *batchFile, char *epilogFile,
@@ -66,7 +67,7 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
     int slaveRank = status.MPI_SOURCE;
     /* if jobId was non-zero, log the jobId that this slave completed */
     if (jobExitInfo.jobId != 0 && logFp != NULL)
-      logJob(logFp, jobExitInfo.jobId, jobExitInfo.exitStatus);
+        logJob(logFp, slaveRank, jobExitInfo.jobId, jobExitInfo.exitStatus);
     /* tell the slave that something will have to be computed,
        send the jobId to the slave */
     JobInfo jobInfo = {jobId, strlen(batch) + 1};
@@ -84,8 +85,9 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
   while (nrProcs > 1) {
     MPI_Recv(&jobExitInfo, 1, jobExitInfoType,
 	     MPI_ANY_SOURCE, CMD_TAG, MPI_COMM_WORLD, &status);
+    int slaveRank = status.MPI_SOURCE;
     if (jobExitInfo.jobId != 0 && logFp != NULL)
-      logJob(logFp, jobExitInfo.jobId, jobExitInfo.exitStatus);
+        logJob(logFp, slaveRank, jobExitInfo.jobId, jobExitInfo.exitStatus);
     nrProcs--;
     JobInfo jobInfo = {TERMINATE, 0};
     MPI_Send(&jobInfo, 1, jobInfoType, status.MPI_SOURCE,
@@ -203,14 +205,16 @@ char *readCmd(FILE *stream, int initLength) {
 }
 
 /* helper function that logs the completion of a job to the log stream */
-void logJob(FILE *logFp, const int jobId, int exitStatus) {
-  time_t t = time(NULL);
-  struct tm *local = localtime(&t);
-  char *timeStr = asctime(local);
-  timeStr[strlen(timeStr) - 1] = '\0';
-  if (exitStatus == 0)
-    fprintf(logFp, "%d completed at %s\n", jobId, timeStr);
-  else
-    fprintf(logFp, "%d failed at %s: %d\n", jobId, timeStr, exitStatus);
-  fflush(logFp);
+void logJob(FILE *logFp, const int rank, const int jobId,
+            const int exitStatus) {
+    time_t t = time(NULL);
+    struct tm *local = localtime(&t);
+    char *timeStr = asctime(local);
+    timeStr[strlen(timeStr) - 1] = '\0';
+    if (exitStatus == 0)
+        fprintf(logFp, "%d completed by %d at %s\n", jobId, rank, timeStr);
+    else
+        fprintf(logFp, "%d failed by %d at %s: %d\n", jobId, rank, timeStr,
+                exitStatus);
+    fflush(logFp);
 }
