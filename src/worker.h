@@ -13,10 +13,10 @@
 
 /* structs to convey information on job submission & completion */
 typedef struct {
-  int jobId, scriptSize;
+    int jobId, scriptSize;
 } JobInfo;
 typedef struct {
-  int jobId, exitStatus;
+    int jobId, exitStatus;
 } JobExitInfo;
 extern MPI_Datatype jobInfoType, jobExitInfoType;
 
