@@ -107,9 +107,9 @@ sub nr_started {
 # ---------------------------------------------------------------------
 sub unfinished {
     my $self = shift(@_);
-    my $unfinished = (Set::Scalar->new($self->{started}) -
-                          ($self->{completed} + $self->{failed});
-    return sort {$a <=> $b} $unfinished->members();
+    my $unfinished_jobs = Set::Scalar->new($self->{started}) -
+                               ($self->{completed} + $self->{failed});
+    return sort {$a <=> $b} $unfinished_jobs->members();
 }
 
 # ----------------------------------------------------------------------
