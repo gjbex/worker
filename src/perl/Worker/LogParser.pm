@@ -102,6 +102,34 @@ sub nr_started {
 }
 
 # ---------------------------------------------------------------------
+# method that returns the task IDs of unfinished tasks in the file that
+# has been parsed
+# ---------------------------------------------------------------------
+sub unfinished {
+    my $self = shift(@_);
+    my $unfinished = (Set::Scalar->new($self->{started}) -
+                          ($self->{completed} + $self->{failed});
+    return sort {$a <=> $b} $unfinished->members();
+}
+
+# ----------------------------------------------------------------------
+# method to check whether unfinished tasks were found
+# ----------------------------------------------------------------------
+sub has_unfinished {
+    my $self = shift(@_);
+    return $self->nr_unfinished() > 0;
+}
+
+# ----------------------------------------------------------------------
+# method that returns the number of started jobs that did not finish in
+# the log file that has been parsed
+# ----------------------------------------------------------------------
+sub nr_unfinished {
+    my $self = shift(@_);
+    return $self->nr_started() - $self->nr_completed() - $self->nr_failed();
+}
+
+# ---------------------------------------------------------------------
 # method that parses a Worker log file represented by its file
 # name
 # ---------------------------------------------------------------------
