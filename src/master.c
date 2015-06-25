@@ -10,8 +10,9 @@
 int executeScript(char *script, char *name, int verbose);
 int execute(char *script);
 char *readCmd(FILE *stream, int initLength);
-void logJob(FILE *logFp, const int rank, const int jobId,
-            const int exitStatus);
+void logStartJob(FILE *logFp, const int rank, const int jobId);
+void logEndJob(FILE *logFp, const int rank, const int jobId,
+               const int exitStatus);
 
 /* master process logic */
 int master(char *prologFile, char *batchFile, char *epilogFile,
@@ -70,8 +71,8 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
         int slaveRank = status.MPI_SOURCE;
         /* if jobId was non-zero, log the jobId that this slave completed */
         if (jobExitInfo.jobId != 0 && logFp != NULL)
-            logJob(logFp, slaveRank, jobExitInfo.jobId,
-                   jobExitInfo.exitStatus);
+            logEndJob(logFp, slaveRank, jobExitInfo.jobId,
+                      jobExitInfo.exitStatus);
         /* tell the slave that something will have to be computed,
            send the jobId to the slave */
         JobInfo jobInfo = {jobId, strlen(batch) + 1};
@@ -79,6 +80,8 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
                  MPI_COMM_WORLD);
         MPI_Send(batch, jobInfo.scriptSize, MPI_CHAR, slaveRank, DATA_TAG,
                  MPI_COMM_WORLD);
+        if (logFp != NULL)
+            logStartJob(logFp, slaveRank, jobId);
         free(batch);
     }
     /* close batch file */
@@ -92,8 +95,8 @@ int master(char *prologFile, char *batchFile, char *epilogFile,
                 MPI_ANY_SOURCE, CMD_TAG, MPI_COMM_WORLD, &status);
         int slaveRank = status.MPI_SOURCE;
         if (jobExitInfo.jobId != 0 && logFp != NULL)
-            logJob(logFp, slaveRank, jobExitInfo.jobId,
-                   jobExitInfo.exitStatus);
+            logEndJob(logFp, slaveRank, jobExitInfo.jobId,
+                      jobExitInfo.exitStatus);
         nrProcs--;
         JobInfo jobInfo = {TERMINATE, 0};
         MPI_Send(&jobInfo, 1, jobInfoType, status.MPI_SOURCE, CMD_TAG,
@@ -211,9 +214,19 @@ char *readCmd(FILE *stream, int initLength) {
     }
 }
 
+/* helper function that logs the staart of a job to the log stream */
+void logStartJob(FILE *logFp, const int rank, const int jobId) {
+    time_t t = time(NULL);
+    struct tm *local = localtime(&t);
+    char *timeStr = asctime(local);
+    timeStr[strlen(timeStr) - 1] = '\0';
+    fprintf(logFp, "%d started by %d at %s\n", jobId, rank, timeStr);
+    fflush(logFp);
+}
+
 /* helper function that logs the completion of a job to the log stream */
-void logJob(FILE *logFp, const int rank, const int jobId,
-            const int exitStatus) {
+void logEndJob(FILE *logFp, const int rank, const int jobId,
+               const int exitStatus) {
     time_t t = time(NULL);
     struct tm *local = localtime(&t);
     char *timeStr = asctime(local);
