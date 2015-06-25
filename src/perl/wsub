@@ -482,6 +482,7 @@ sub print_help {
 #                [-mpiverbose]                \\
 #                [-master]                    \\
 #                [-threaded]                  \\
+#                [-sleep <microseconds>]      \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
 #                [-t <array-req>]             \\
