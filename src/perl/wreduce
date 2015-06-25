@@ -59,7 +59,7 @@ GetOptions(
     "data=s"       => \@data_files,
     "pattern=s"    => \$pattern,
     "output=s"     => \$output_file,
-    "reductor"     => \$reductor,
+    "reductor=s"   => \$reductor,
     "rm_orig"      => \$rm_orig,
     "verbose"      => \$verbose,
     "quiet"        => \$quiet,
@@ -92,7 +92,7 @@ if (scalar(@data_files) > 0) {
 }
 # check reductor
 msg("checking reductor...");
-unless (-X $reductor) {
+unless (-x $reductor) {
     print STDERR "### error: reductor is not executable\n";
     exit 5;
 }
@@ -156,7 +156,7 @@ for my $file_name (@files_found) {
     } elsif ($? & 127) {
         printf STDERR "### error: reductor died with %d, %s coredump\n",
                       ($? & 127),  ($? & 128) ? 'with' : 'without';
-    } else {
+    } elsif ($? != 0) {
         printf STDERR "### error: reductor exited with value %d\n", $? >> 8;
     }
     msg("file '$file_name' processed");
@@ -200,7 +200,7 @@ sub print_help {
 #                           used for the wsub command
 #   -output <file>        : name of the output file that will contain the
 #                           concatenated data
-#   -reduce <reductor>    : script implementing the reduction of a single
+#   -reductor <reductor>  : script implementing the reduction of a single
 #                           output file to ghe final output
 #   -rm_orig              : remove the files, ones they have been concatenated
 #                           to the output file; use with caution since this
