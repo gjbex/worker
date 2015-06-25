@@ -333,9 +333,9 @@ if (defined $dryrun) {
     print "$submit_cmd\n";
 } else {
     unless (system($submit_cmd) == 0) {
-	print STDERR "### error: failed to submit job: $!\n";
-	print STDERR "    $submit_cmd\n";
-	exit 3;
+        print STDERR "### error: failed to submit job: $!\n";
+        print STDERR "    $submit_cmd\n";
+        exit 3;
     }
 }
 
@@ -351,14 +351,15 @@ sub merge_options {
     my @options = ();
     my %temp_options = %{$previous_options};
     foreach my $irrelevant (@{$exclude}) {
-	delete $temp_options{$irrelevant};
+        delete $temp_options{$irrelevant};
     }
     foreach my $flag (keys %{$current_options}) {
-	$temp_options{$flag} = $current_options->{$flag};
+        $temp_options{$flag} = $current_options->{$flag};
     }
     foreach my $flag (keys %temp_options) {
-	push(@options, $flag);
-	push(@options, $temp_options{$flag}) if defined $temp_options{$flag};
+        push(@options, $flag);
+        push(@options, $temp_options{$flag})
+            if defined $temp_options{$flag};
     }
     return @options;
 }
@@ -370,8 +371,8 @@ sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
     unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
+        print STDERR "### error: can't create '$file_name': $!\n";
+        exit 2;
     }
     print OUT "#!/bin/bash -l\n\n";
     print OUT create_run_cmd(@_), "\n";
@@ -391,8 +392,8 @@ sub create_run_cmd {
 sub suppressed_option {
     my ($flag, $value) = @_;
     if (defined $value) {
-	print STDERR "### warning: option '$flag' is ignored upon\n";
-	print STDERR "             job resume\n";
+        print STDERR "### warning: option '$flag' is ignored upon\n";
+        print STDERR "             job resume\n";
     }
 }
 
@@ -437,8 +438,8 @@ sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
     unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
+        print STDERR "### error: can't create '$file_name': $!\n";
+        exit 2;
     }
     print OUT "#!/bin/bash\n\n";
     print OUT create_run_cmd(@_), "\n";
