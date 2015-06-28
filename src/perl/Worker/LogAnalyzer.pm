@@ -63,6 +63,94 @@ sub init {
 # -----------------------------------------------------------------------
 sub reset {
     my $self = shift(@_);
+    my $drop_work_items = qq(
+        DROP TABLE work_item;
+    );
+    $self->{dbh}->do($drop_work_items);
+    my $drop_results = qq(
+        DROP TABLE results;
+    );
+    $self->{dbh}->do($drop_results);
+    $self->init();
+}
+
+# ---------------------------------------------------------------------
+# Retrieve execution times of all finished work items
+# ---------------------------------------------------------------------
+sub work_item_times {
+    my $self = shift(@_);
+    my $query = qq(
+        SELECT s.work_item, s.worker_id, e.end_time - s.start_time
+            FROM work_items AS s, results AS e
+            WHERE s.work_item = e.work_item
+            ORDER BY s.work_item;
+    );
+    return $self->{dbh}->selectall_arrayref($query);
+}
+
+# ---------------------------------------------------------------------
+# Retrieve statistics on work item execution times
+# ---------------------------------------------------------------------
+sub work_item_stats {
+    my $self = shift(@_);
+    my $query = qq(
+        SELECT COUNT(*),
+               AVG(e.end_time - s.start_time),
+               MIN(e.end_time - s.start_time),
+               MAX(e.end_time - s.start_time)
+            FROM work_items AS s, results AS e
+            WHERE s.work_item = e.work_item;
+    );
+    return $self->{dbh}->selectall_arrayref($query);
+}
+
+# ---------------------------------------------------------------------
+# Retrieve total execution time per worker
+# ---------------------------------------------------------------------
+sub worker_times {
+    my $self = shift(@_);
+    my $query = qq(
+        SELECT s.worker_id, sum(e.end_time - s.start_time), count(*)
+            FROM work_items AS s, results AS e
+            WHERE s.work_item = e.work_item
+            GROUP BY s.worker_id
+            ORDER BY s.worker_id;
+    );
+    return $self->{dbh}->selectall_arrayref($query);
+}
+
+# ---------------------------------------------------------------------
+# Retrieve statistics on workers
+# ---------------------------------------------------------------------
+sub worker_stats {
+    my $self = shift(@_);
+    my $query = qq(
+        SELECT COUNT(t.worker_id),
+               AVG(t.time),
+               MIN(t.time),
+               MAX(t.time)
+            FROM (SELECT s.worker_id AS worker_id,
+                         e.end_time - s.start_time AS time
+                      FROM work_items AS s, results AS e
+                      WHERE s.work_item = e.work_item
+                      GROUP BY s.worker_id) AS t
+    );
+    return $self->{dbh}->selectall_arrayref($query);
+}
+
+# ---------------------------------------------------------------------
+# Find failed work items only per worker
+# ---------------------------------------------------------------------
+sub worker_failed {
+    my $self = shift(@_);
+    my $query = qq(
+        SELECT s.worker_id, count(*)
+            FROM work_items AS s, results AS e
+            WHERE s.work_item = e.work_item and e.exit_code <> 0
+            GROUP BY s.worker_id
+            ORDER BY s.worker_id;
+    );
+    return $self->{dbh}->selectall_arrayref($query);
 }
 
 # ---------------------------------------------------------------------
