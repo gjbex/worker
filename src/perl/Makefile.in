@@ -194,7 +194,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = Worker Pbs
-dist_bin_SCRIPTS = wcat wconvert wresume wsub wsummarize wreduce
+dist_bin_SCRIPTS = wcat wconvert wresume wsub wsummarize wreduce wload
 all: all-recursive
 
 .SUFFIXES:
