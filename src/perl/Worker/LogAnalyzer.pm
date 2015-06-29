@@ -15,11 +15,18 @@ use IO::File;
 # ----------------------------------------------------------------------
 sub new {
     my $pkg = shift(@_);
-    my $db_name = scalar(@_) > 0 ? shift(@_) : ':memory:';
+    my $db_name = undef;
+    my $exists = undef;
+    if (scalar(@_) > 0) {
+        $db_name = shift(@_);
+        $exists = -e $db_name;
+    } else {
+        $db_name = ':memory:';
+    }
     my $self = bless {
         dbh => DBI->connect("dbi:SQLite:dbname=$db_name", '', '')
     }, $pkg;
-    $self->init();
+    $self->init() unless $exists;
     return $self;
 }
 
@@ -125,10 +132,10 @@ sub worker_times {
 sub worker_stats {
     my $self = shift(@_);
     my $query = qq(
-        SELECT COUNT(t.worker_id),
-               AVG(t.time),
-               MIN(t.time),
-               MAX(t.time)
+        SELECT COUNT(t.worker_id) AS 'nr. workers',
+               AVG(t.time) AS 'average time per work item',
+               MIN(t.time) AS 'minimum time for work item',
+               MAX(t.time) AS 'maximum time for work item'
             FROM (SELECT s.worker_id AS worker_id,
                          e.end_time - s.start_time AS time
                       FROM work_items AS s, results AS e
