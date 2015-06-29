@@ -97,8 +97,8 @@ if ($should_keep) {
 }
 
 if ($is_workitems) {
-    my $results = $log_analyzer->workitem_times();
-    printf("%12s,%12d,%15s\n",
+    my $results = $log_analyzer->work_item_times();
+    printf("%12s,%12s,%15s\n",
            'worker item', 'worker ID', 'execution time');
     foreach my $result (@$results) {
         printf("%12d,%12d,%15d\n",
@@ -106,7 +106,7 @@ if ($is_workitems) {
     }
 } elsif ($is_workers) {
     my $results = $log_analyzer->worker_times();
-    printf("%12s,%15d,%12s\n",
+    printf("%12s,%15s,%12s\n",
            'worker ID', 'execution time', 'work items');
     foreach my $result (@$results) {
         printf("%12d,%15d,%12d\n",
@@ -117,18 +117,18 @@ if ($is_workitems) {
 
     print "Work item statistics:\n";
     $results = $log_analyzer->work_item_stats();
-    printf("\tnumber of items: %d\n", $nr_tasks);
-    printf("\tnumber of finished items: %d\n", $results->[0]);
-    printf("\taverage execution time: %.2f\n", $results->[1]);
-    printf("\tminimum execution time: %d\n", $results->[2]);
-    printf("\tmaximum execution time: %d\n", $results->[3]);
+    printf "\tnumber of items: %d\n", ($nr_tasks);
+    printf "\tnumber of finished items: %d\n", ($results->[0]->[0]);
+    printf "\taverage execution time: %.2f\n", ($results->[0]->[1]);
+    printf "\tminimum execution time: %d\n", ($results->[0]->[2]);
+    printf "\tmaximum execution time: %d\n", ($results->[0]->[3]);
 
     print "Worker statistics:\n";
     $results = $log_analyzer->worker_stats();
-    printf("\tnumber of workers: %d\n", $results->[0]);
-    printf("\taverage execution time: %.2f\n", $results->[1]);
-    printf("\tminimum execution time: %d\n", $results->[2]);
-    printf("\tmaximum execution time: %d\n", $results->[3]);
+    printf "\tnumber of workers: %d\n", ($results->[0]->[0]);
+    printf "\taverage execution time: %.2f\n", ($results->[0]->[1]);
+    printf "\tminimum execution time: %d\n", ($results->[0]->[2]);
+    printf "\tmaximum execution time: %d\n", ($results->[0]->[3]);
 }
 
 # ---------------------------------------------------------------------
