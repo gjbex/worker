@@ -3,6 +3,16 @@ site_description: worker is intended to easily submit and manage embarrasignly p
 site_author: Geert Jan Bex
 pages:
 - ['index.md', 'Introduction and motivation']
+- ['steps.md', 'Step by step']
+- ['mapreduce.md', 'Prologue and epilogue']
+- ['efficiency.md', 'Using worker efficiently']
+- ['monitoring.md', 'Monitoring worker jobs']
+- ['time_limits.md', 'Limiting execution time']
+- ['resume.md', 'Resuming a worker job']
+- ['multithreading.md', 'Multithreaded work items']
+- ['further_info.md', 'Further information']
+- ['trouble.md', 'Trouble shooting']
+- ['changes.md', 'Changes']
 - ['contact.md', 'Contact information']
 site_dir: html_docs/worker
 theme: readthedocs
