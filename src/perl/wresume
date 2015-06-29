@@ -66,6 +66,7 @@ my $default_pro  = $conf{default_pro};    # templ. prolog name
 my $default_epi  = $conf{default_epi};    # templ. epilog name
 my $default_pbs  = $conf{default_pbs};    # templ. PBS name
 my $default_host = $conf{default_host};   # templ. host file name
+my $default_sleep = $conf(default_sleep); # MPI_Test sleep time
 
 # files to be found in the $worker_dir
 # PBS template
@@ -100,6 +101,7 @@ my $epilog = undef;
 my $mpi_verbose = undef;
 my $master = 0;
 my $threaded = 0;
+my $sleep = $default_sleep;
 my $job_name = undef;
 my $directive_prefix = undef;
 my $verbose = 0;
@@ -107,9 +109,10 @@ my $dryrun = undef;
 my $quiet = 0;
 my $pbs_array_str = undef;
 
-GetOptions("jobid=s"         => \$jobid,
+GetOptions(
+i      "jobid=s"         => \$jobid,
 	   "retry"           => \$retry,
-           "enable_prolog"   => \$enable_prolog,
+       "enable_prolog"   => \$enable_prolog,
 	   "disable_epilog"  => \$disable_epilog,
 	   "prolog=s"        => \$prolog,
 	   "epilog=s"        => \$epilog,
@@ -118,6 +121,7 @@ GetOptions("jobid=s"         => \$jobid,
 	   "verbose"         => \$verbose,
        "master"          => \$master,
        "threaded"        => \$threaded,
+       "sleep=i"         => \$sleep,
 	   "dryrun"          => \$dryrun,
 	   "quiet"           => \$quiet,
 	   "help"            => \&show_help,
@@ -271,6 +275,7 @@ my $vars = {
     'logfile'        => $log_file,
     'master'         => $master,
     'threaded'       => $threaded,
+    'sleep'          => $sleep,
     'ppn'            => $ppn,
     'basename'       => $job_name,
     'default_log'    => $default_log,
@@ -328,9 +333,9 @@ if (defined $dryrun) {
     print "$submit_cmd\n";
 } else {
     unless (system($submit_cmd) == 0) {
-	print STDERR "### error: failed to submit job: $!\n";
-	print STDERR "    $submit_cmd\n";
-	exit 3;
+        print STDERR "### error: failed to submit job: $!\n";
+        print STDERR "    $submit_cmd\n";
+        exit 3;
     }
 }
 
@@ -346,14 +351,15 @@ sub merge_options {
     my @options = ();
     my %temp_options = %{$previous_options};
     foreach my $irrelevant (@{$exclude}) {
-	delete $temp_options{$irrelevant};
+        delete $temp_options{$irrelevant};
     }
     foreach my $flag (keys %{$current_options}) {
-	$temp_options{$flag} = $current_options->{$flag};
+        $temp_options{$flag} = $current_options->{$flag};
     }
     foreach my $flag (keys %temp_options) {
-	push(@options, $flag);
-	push(@options, $temp_options{$flag}) if defined $temp_options{$flag};
+        push(@options, $flag);
+        push(@options, $temp_options{$flag})
+            if defined $temp_options{$flag};
     }
     return @options;
 }
@@ -365,8 +371,8 @@ sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
     unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
+        print STDERR "### error: can't create '$file_name': $!\n";
+        exit 2;
     }
     print OUT "#!/bin/bash -l\n\n";
     print OUT create_run_cmd(@_), "\n";
@@ -386,8 +392,8 @@ sub create_run_cmd {
 sub suppressed_option {
     my ($flag, $value) = @_;
     if (defined $value) {
-	print STDERR "### warning: option '$flag' is ignored upon\n";
-	print STDERR "             job resume\n";
+        print STDERR "### warning: option '$flag' is ignored upon\n";
+        print STDERR "             job resume\n";
     }
 }
 
@@ -432,8 +438,8 @@ sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
     unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
+        print STDERR "### error: can't create '$file_name': $!\n";
+        exit 2;
     }
     print OUT "#!/bin/bash\n\n";
     print OUT create_run_cmd(@_), "\n";
@@ -479,8 +485,9 @@ sub print_help {
 #                  [-disable_epilog | -epilog <epilog-file>]   \\
 #                  [-retry]                                    \\
 #                  [-disable_options]                          \\
-#                  [-master]                    \\
-#                  [-threaded]                  \\
+#                  [-master]                                   \\
+#                  [-threaded]                                 \\
+#                  [-sleep <microseconds>]                     \\
 #                  [-mpiverbose]                               \\
 #                  [-dryrun] [-verbose]                        \\
 #                  [-quiet] [-help]                            \\
@@ -507,6 +514,10 @@ sub print_help {
 #                           regardless of ppn, hence each work item will
 #                           have <total node cores>/ppn cores for its
 #                           threads
+#   -sleep <microseconds> : time for the master to sleep between
+#                           MPI_Test to avoid spinning, expressed in
+#                           microseconds; don't use this unless you're
+#                           really sure what you are doing
 #   -disable-options      : when specified, the options that were specified
 #                           for the job to be resumed are completely ignored
 #   -mpiverbose           : pass verbose flag to the underlying MPI program

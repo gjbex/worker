@@ -31,3 +31,4 @@ config.log
 src/worker
 
 *~
+*.swp

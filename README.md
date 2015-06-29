@@ -273,6 +273,14 @@ $ dos2unix run.pbs
 
 Changes
 -------
+New in version 1.6.0
+  * wreduce: a more generic result aggregation function where one can
+    any reductor (think wcat, but with a user-defined operator)
+  * work item start is now also logged
+  * worker ID is logged for all events
+  * wload: provides load balancing information to analyse job efficiency
+  * user access to MPI_Test sleep time (for power users only)
+   
 Changed in version 1.5.2
   * increased WORK_STR_LENGTH from 4 kb to 1 Mb
 

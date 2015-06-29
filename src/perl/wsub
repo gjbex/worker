@@ -61,6 +61,7 @@ my $default_pro  = $conf{default_pro};    # templ. prolog name
 my $default_epi  = $conf{default_epi};    # templ. epilog name
 my $default_pbs  = $conf{default_pbs};    # templ. PBS name
 my $default_host = $conf{default_host};   # templ. host file name
+my $default_sleep = $conf(default_sleep); # MPI_Test sleep time
 
 # files to be found in the $worker_dir
 # PBS template
@@ -93,6 +94,7 @@ my $pbs_array_str = undef;
 my $mpi_verbose = undef;
 my $master = 0;
 my $threaded = 0;
+my $sleep = $default_sleep;
 my $job_name = undef;
 my $directive_prefix = undef;
 my $verbose = 0;
@@ -111,6 +113,7 @@ GetOptions(
         "verbose"              => \$verbose,
         "master"               => \$master,
         "threaded"             => \$threaded,
+        "sleep=i"              => \$sleep,
         "dryrun"               => \$dryrun,
         "quiet"                => \$quiet,
         "allow_loose_quotes"   => \$allow_loose_quotes,
@@ -302,6 +305,7 @@ my $vars = {
     'logfile'        => $log_file,
     'master'         => $master,
     'threaded'       => $threaded,
+    'sleep'          => $sleep,
     'ppn'            => $ppn,
     'basename'       => $batch_tmpl_file,
     'default_log'    => $default_log,
@@ -478,6 +482,7 @@ sub print_help {
 #                [-mpiverbose]                \\
 #                [-master]                    \\
 #                [-threaded]                  \\
+#                [-sleep <microseconds>]      \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
 #                [-t <array-req>]             \\
@@ -503,7 +508,12 @@ sub print_help {
 #                           ensures that CPU sets will have all cores,
 #                           regardless of ppn, hence each work item will
 #                           have <total node cores>/ppn cores for its
-#                           threads
+#                           threads; don't use this unless you know
+#                           what you are doing
+#   -sleep <microseconds> : time for the master to sleep between
+#                           MPI_Test to avoid spinning, expressed in
+#                           microseconds; don't use this unless you're
+#                           really sure what you are doing
 #   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
 #   -help                 : print this help message
 #   -allow_loose_quotes   : enable CSV loose quote parsing mode, do not
