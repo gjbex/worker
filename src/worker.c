@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     char *logFile = NULL;
     char optChar = '\0';
     unsigned int sleepTime = DEFAULT_USLEEP;
-    while ((optChar = getopt(argc, argv, "p:b:e:l:vh")) != -1) {
+    while ((optChar = getopt(argc, argv, "p:b:e:l:s:vh")) != -1) {
         switch (optChar) {
             case 'p':
                 prologFile = optarg;
@@ -132,6 +132,7 @@ void printHelp() {
         "#               are stopped\n"
         "# -l <log>    : log file, can be monitored for progress,\n"
         "#               if not specified, no logging is done\n"
+        "# -s <sleep>  : sleep time for master in MPI_Test loop\n"
         "# -v          : give verbose feedback\n"
         "# -h          : print this help message\n"
     );
