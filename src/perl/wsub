@@ -61,7 +61,7 @@ my $default_pro  = $conf{default_pro};    # templ. prolog name
 my $default_epi  = $conf{default_epi};    # templ. epilog name
 my $default_pbs  = $conf{default_pbs};    # templ. PBS name
 my $default_host = $conf{default_host};   # templ. host file name
-my $default_sleep = $conf(default_sleep); # MPI_Test sleep time
+my $default_sleep = $conf{default_sleep}; # MPI_Test sleep time
 
 # files to be found in the $worker_dir
 # PBS template
