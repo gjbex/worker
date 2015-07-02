@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Trouble shooring - worker documentation</title>
+  <title>Post processing - worker documentation</title>
   
 
   <link rel="shortcut icon" href="../img/favicon.ico">
@@ -20,7 +20,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Trouble shooring";
+    var mkdocs_page_name = "Post processing";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -92,8 +92,12 @@
 <li>
           
             <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../postprocessing/">Post processing</a>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Post processing</a>
+        
+            <ul>
+            
+            </ul>
         
     </li>
 <li>
@@ -120,12 +124,8 @@
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Trouble shooring</a>
-        
-            <ul>
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="../trouble/">Trouble shooring</a>
         
     </li>
 <li>
@@ -166,7 +166,7 @@
     
       
     
-    <li>Trouble shooring</li>
+    <li>Post processing</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -176,17 +176,38 @@
           <div role="main">
             <div class="section">
               
-                <p>The most common problem with the <code>worker</code> framework is that it doesn't
-seem to work at all, showing messages in the error file about module
-failing to work.  The cause is trivial, and easy to remedy.</p>
-<p>Like any PBS script, a worker PBS file has to be in UNIX format!</p>
-<p>If you edited a PBS script on your desktop, or something went wrong
-during sftp/scp, the PBS file may end up in DOS/Windows format, i.e.,
-it has the wrong line endings.  The PBS/torque queue system can not
-deal with that, so you will have to convert the file, e.g., for
-file <code>run.pbs</code>:</p>
-<pre><code>$ dos2unix run.pbs
+                <p>In some settings, each the execution of each work item results in an individual file, but as a post-processing step, these files should be aggregated into a single one.  Since this scenario is fairly common, worker supports it through two command, <code>wcat</code> and <code>wredcue</code>.</p>
+<p>Typically, the names of the files are based on one or more variables that are present in the data file.  By way of example, we will assume three variables <code>temperature</code>, <code>pressure</code>, and <code>volume</code> in a CSV file <code>data.csv</code>.  The PBS script fragment below illustrates how the files are created.</p>
+<pre><code>simulate -t $temperature -p $pressure -v $volume \
+    &gt; output-$temperature-$pressure-$volume.txt
 </code></pre>
+
+<p>For the running example, this would result in a set of files such as:</p>
+<pre><code>output-293.0-1.0e6-1.0.txt
+output-294.0-1.0e6-1.0.txt
+output-295.0-1.0e6-1.0.txt
+output-296.0-1.0e6-1.0.txt
+</code></pre>
+
+<p>The <code>wcat</code> command can now be used to conveniently concatenate these files, based on the data file that was used to define the work items, and the pattern that describes the file names.</p>
+<pre><code>$ wcat  -pattern 'output-[%temperature%]-[%pressure%]-[%volume%].txt' \
+        -data data.csv  -output output.txt
+</code></pre>
+
+<p>This command will concatenate the individual files into <code>output.txt</code>.  <code>wcat</code> has several options such as <code>-skep_fiter &lt;n&gt;</code> that will skip the first <code>n</code> lines of each file so that, .e.g., headers are not repeated each time.  By default, blank lines at the end of files are skipped, though this can be avoided by using the <code>-keep_blank</code> option.</p>
+<p>To support scenarios where the reduction of output files is complex, or the output is not text, <code>wreduce</code> offers assistance.  It works similar to <code>wcat</code> but additionally a reductor script has to be provided.
+The latter takes two parameters, the name of the file that will contain the aggregated output, and the other the file name that contains data to be added to the former.
+The following reductor script, <code>reductor.sh</code> mimics the behaviour of <code>wcat</code></p>
+<pre><code>#!/bin/bash
+cat $2 &gt;&gt; $1
+</code></pre>
+
+<p>The reduction would be done using <code>wreduce</code> as follows:</p>
+<pre><code>$ wreduce  -pattern 'output-[%temperature%]-[%pressure%]-[%volume%].txt' \
+           -data data.csv  -reductor reductor.sh  -output output.txt
+</code></pre>
+
+<p>This command can be used to deal with R data files, provided the reductor script contains a call to an R script that adds the individual data to the global data structure.</p>
               
             </div>
           </div>
@@ -194,10 +215,10 @@ file <code>run.pbs</code>:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../changes/" class="btn btn-neutral float-right" title="Changes"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../multithreading/" class="btn btn-neutral float-right" title="Multithreaded work items"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../further_info/" class="btn btn-neutral" title="Further information"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../resume/" class="btn btn-neutral" title="Resuming a worker job"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -223,10 +244,10 @@ file <code>run.pbs</code>:</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../further_info/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../resume/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../changes/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../multithreading/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

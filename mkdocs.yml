@@ -8,7 +8,7 @@ pages:
 - Monitoring worker jobs: 'monitoring.md'
 - Limiting execution time: 'time_limits.md'
 - Resuming a worker job: 'resume.md'
-- Post processing: 'postprocessingmd'
+- Post processing: 'postprocessing.md'
 - Multithreaded work items: 'multithreading.md'
 - Worker commands: 'commands.md'
 - Further information: 'further_info.md'
