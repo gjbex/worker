@@ -19,6 +19,9 @@ mv [%dir%][%pbs_file%] [%default_pbs%]
 [%IF prolog%]cp [%dir%][%prolog%] [%default_pro%][%END%]
 WORKER_PROLOG="[%IF prolog%]-p [%default_pro%][%END%]"
 
+# master sleep time to avoid MPI_Test spinning load
+WORKER_SLEEP="[%IF sleep%]-s [%sleep%][%END%]"
+
 # compute batch option
 WORKER_BATCH="-b [%default_sh%]"
 
@@ -71,4 +74,4 @@ module load [%mpi_module%]
 # start the worker
 [%mpirun%] [%mpirun_options%] ${HOST_FILE} \
     "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
-                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE}
+                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP}

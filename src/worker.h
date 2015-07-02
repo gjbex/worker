@@ -13,15 +13,18 @@
 
 /* structs to convey information on job submission & completion */
 typedef struct {
-  int jobId, scriptSize;
+    int jobId, scriptSize;
 } JobInfo;
 typedef struct {
-  int jobId, exitStatus;
+    int jobId, exitStatus;
 } JobExitInfo;
 extern MPI_Datatype jobInfoType, jobExitInfoType;
 
 /* initial length of the char array that will hold a batch script */
 #define WORK_STR_LENGTH 1048576
+
+/* default sleep time for MPI_Test loop */
+#define DEFAULT_USLEEP 10000
 
 /* interpreter to use by the slaves for the batch scripts */
 #define BASH "/bin/bash -l"

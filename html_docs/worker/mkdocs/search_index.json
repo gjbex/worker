@@ -1,0 +1,74 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "The Worker framework has been developed to meet specific use cases: many small jobs determined by parameter variations; the scheduler's task is easier when it does not have to deal with too many jobs.\n\n\nSuch use cases often have a common root: the user wants to run a program with a large number of parameter settings, and the program does not allow for aggregation, i.e., it has to be run once for each instance of the parameter values. However, Worker's scope is wider: it can be used for any scenario that can be reduced to a MapReduce approach.\n\n\nThis how-to shows you how to use the Worker framework.", 
+            "title": "Introduction and motivation"
+        }, 
+        {
+            "location": "/", 
+            "text": "The Worker framework has been developed to meet specific use cases: many small jobs determined by parameter variations; the scheduler's task is easier when it does not have to deal with too many jobs.\n\n\nSuch use cases often have a common root: the user wants to run a program with a large number of parameter settings, and the program does not allow for aggregation, i.e., it has to be run once for each instance of the parameter values. However, Worker's scope is wider: it can be used for any scenario that can be reduced to a MapReduce approach.\n\n\nThis how-to shows you how to use the Worker framework.", 
+            "title": "Step by step"
+        }, 
+        {
+            "location": "/mapreduce/", 
+            "text": "Often, an embarrassingly parallel computation can be abstracted to three simple steps:\n\n\na preparation phase in which the data is split up into smaller, more manageable chuncks;\non these chuncks, the same algorithm is applied independently (these are the work items); and\nthe results of the computations on those chuncks are aggregated into, e.g., a statistical description of some sort.\nThe Worker framework directly supports this scenario by using a prologue and an epilogue. The former is executed just once before work is started on the work items, the latter is executed just once after the work on all work items has finished. Technically, the prologue and epilogue are executed by the master, i.e., the process that is responsible for dispatching work and logging progress.\n\n\nSuppose that 'split-data.sh' is a script that prepares the data by splitting it into 100 chuncks, and 'distr.sh' aggregates the data, then one can submit a MapReduce style job as follows:\n\n\n$ wsub -prolog split-data.sh  -batch run.pbs  -epilog distr.sh -t 1-100\n\n\n\n\nNote that the time taken for executing the prologue and the epilogue should be added to the job's total walltime.", 
+            "title": "Prologue and epilogue"
+        }, 
+        {
+            "location": "/monitoring/", 
+            "text": "Since a Worker job will typically run for several hours, it may be reassuring to monitor its progress. Worker keeps a log of its activity in the directory where the job was submitted. The log's name is derived from the job's name and the job's ID, i.e., it has the form \n.log\n. For the running example, this could be \nrun.pbs.log445948\n, assuming the job's ID is 445948. To keep an eye on the progress, one can use:\n\n\n$ tail -f run.pbs.log445948\n\n\n\n\nAlternatively, a Worker command that summarizes a log file can be used:\n\n\n$ watch -n 60 wsummarize run.pbs.log445948\n\n\n\n\nThis will summarize the log file every 60 seconds.\n\n\nFor more detailed analysis of perfornmance issues, the \nwload\n command can be used.  It will analyze a log file, and output a summary by default.  The latter will provide statistics on the work items (total number, average, minimum and maximum compute time), and the workers (total number, average compute time and average work items computed.\nHowever, more detailed in formation is available by specifying the \n-workitems\n command line option.  This will list the compute time for each individual work item, the worker it was processed by, and the exit status.\nAlternatively, the \n-workers\n option will list the total execution time and work items processed by each individual worker, which is useful for a load balance analysis.\nFor example,\n\n\n$ wload -workers run.pbs.log445948\n\n\n\n\nwould provide worker statistics.", 
+            "title": "Monitoring worker jobs"
+        }, 
+        {
+            "location": "/time_limits/", 
+            "text": "Sometimes, the execution of a work item takes long than expected, or worse, some work items get stuck in an infinite loop. This situation is unfortunate, since it implies that work items that could successfully are not even started. Again, a simple and yet versatile solution is offered by the Worker framework. If we want to limit the execution of each work item to at most 20 minutes, this can be accomplished by modifying the script of the running example.\n\n\n#!/bin/bash -l\n#PBS -l nodes=1:ppn=8\n#PBS -l walltime=04:00:00\nmodule load timedrun\ncd $PBS_O_WORKDIR\ntimedrun -t 00:20:00 cfd-test -t $temperature  -p $pressure  -v $volume\n\n\n\n\nNote that it is trivial to set individual time constraints for work items by introducing a parameter, and including the values of the latter in the CSV file, along with those for the temperature, pressure and volume.\n\n\nAlso note that 'timedrun' is in fact offered in a module of its own, so it can be used outside the Worker framework as well.", 
+            "title": "Limiting execution time"
+        }, 
+        {
+            "location": "/resume/", 
+            "text": "Unfortunately, it is not always easy to estimate the walltime for a job, and consequently, sometimes the latter is underestimated. When using the Worker framework, this implies that not all work items will have been processed. Worker makes it very easy to resume such a job without having to figure out which work items did complete successfully, and which remain to be computed. Suppose the job that did not complete all its work items had ID '445948'.\n\n\n$ wresume -jobid 445948\n\n\n\n\nThis will submit a new job that will start to work on the work items that were not done yet. Note that it is possible to change almost all job parameters when resuming, specifically the requested resources such as the number of cores and the walltime.\n\n\n$ wresume -l walltime=1:30:00 -jobid 445948\n\n\n\n\nWork items may fail to complete successfully for a variety of reasons, e.g., a data file that is missing, a (minor) programming error, etc. Upon resuming a job, the work items that failed are considered to be done, so resuming a job will only execute work items that did not terminate either successfully, or reporting a failure. It is also possible to retry work items that failed (preferably after the glitch why they failed was fixed).\n\n\n$ wresume -jobid 445948 -retry\n\n\n\n\nBy default, a job's prologue is not executed when it is resumed, while its epilogue is. 'wresume' has options to modify this default behavior.", 
+            "title": "Resuming a worker job"
+        }, 
+        {
+            "location": "/postprocessing/", 
+            "text": "In some settings, each the execution of each work item results in an individual file, but as a post-processing step, these files should be aggregated into a single one.  Since this scenario is fairly common, worker supports it through two command, \nwcat\n and \nwredcue\n.\n\n\nTypically, the names of the files are based on one or more variables that are present in the data file.  By way of example, we will assume three variables \ntemperature\n, \npressure\n, and \nvolume\n in a CSV file \ndata.csv\n.  The PBS script fragment below illustrates how the files are created.\n\n\nsimulate -t $temperature -p $pressure -v $volume \\\n    \n output-$temperature-$pressure-$volume.txt\n\n\n\n\nFor the running example, this would result in a set of files such as:\n\n\noutput-293.0-1.0e6-1.0.txt\noutput-294.0-1.0e6-1.0.txt\noutput-295.0-1.0e6-1.0.txt\noutput-296.0-1.0e6-1.0.txt\n\n\n\n\nThe \nwcat\n command can now be used to conveniently concatenate these files, based on the data file that was used to define the work items, and the pattern that describes the file names.\n\n\n$ wcat  -pattern 'output-[%temperature%]-[%pressure%]-[%volume%].txt' \\\n        -data data.csv  -output output.txt\n\n\n\n\nThis command will concatenate the individual files into \noutput.txt\n.  \nwcat\n has several options such as \n-skep_fiter \nn\n that will skip the first \nn\n lines of each file so that, .e.g., headers are not repeated each time.  By default, blank lines at the end of files are skipped, though this can be avoided by using the \n-keep_blank\n option.\n\n\nTo support scenarios where the reduction of output files is complex, or the output is not text, \nwreduce\n offers assistance.  It works similar to \nwcat\n but additionally a reductor script has to be provided.\nThe latter takes two parameters, the name of the file that will contain the aggregated output, and the other the file name that contains data to be added to the former.\nThe following reductor script, \nreductor.sh\n mimics the behaviour of \nwcat\n\n\n#!/bin/bash\ncat $2 \n $1\n\n\n\n\nThe reduction would be done using \nwreduce\n as follows:\n\n\n$ wreduce  -pattern 'output-[%temperature%]-[%pressure%]-[%volume%].txt' \\\n           -data data.csv  -reductor reductor.sh  -output output.txt\n\n\n\n\nThis command can be used to deal with R data files, provided the reductor script contains a call to an R script that adds the individual data to the global data structure.", 
+            "title": "Post processing"
+        }, 
+        {
+            "location": "/multithreading/", 
+            "text": "If a work item uses threading, the execution of a \nworker\n job is very\nsimilar to that of a hybrid MPI/OpenMP application, and in compbination\nwith CPU sets, similar measures should be taken to ensure efficient\nexecution.  \nworker\n supports this through the \n-threaded\n flag.\nFor example, assume a compute node has 20 cores, and a work item runs\nefficiently usinng 4 threads, then the following resource specification\nwould be appropriate:\n\n\nwsub  -lnodes=4:ppn=5  -threaded  ...\n\n\n\n\nworker\n ensures that all cores are in the CPU set for the job, but will\nnot compute more than 5 work items on a node, so that each work item\ncan use 4 cores.\n\n\nIn order to allow interoperability with tools such as numactl or other\nthread-pinning software, two variables are made available to job scripts:\n\nWORKER_RANK\n and \nWORKER_SIZE\n.  These represent the rank of the slave\nin the MPI communicator and the latter's size.  This allows to compute\nthe placements of the processes started in work items with respect to the\nCPU set of the node they are running on.  This can be useful to control\nthe number of threads used by individual work items.", 
+            "title": "Multithreaded work items"
+        }, 
+        {
+            "location": "/commands/", 
+            "text": "The worker framework has the following commands:\n  * \nwsub\n: submit a worker job\n  * \nwresume\n: resubmit a worker job, however, only unfinished work items will be executed\n  * \nwconvert\n: convert a Bash file to a work item file, each line is considred a work item\n  * \nwsummarize\n: provide summary information on a (running) worker job, showing the number of completed or failed work items\n  * \nwload\n: analyze the worker log file to diagnose load balancing issues\n  * \nwcat\n: aggregate text output produced by work items\n  * \nwreduce\n: aggregate any type of output generated by work items using a user-defined reductor", 
+            "title": "Worker commands"
+        }, 
+        {
+            "location": "/further_info/", 
+            "text": "This how-to introduces only Worker's basic features. All worker command has usage information that is printed when the -help option is specified, e.g.,\n\n\n$ wsub -help", 
+            "title": "Further information"
+        }, 
+        {
+            "location": "/trouble/", 
+            "text": "The most common problem with the \nworker\n framework is that it doesn't\nseem to work at all, showing messages in the error file about module\nfailing to work.  The cause is trivial, and easy to remedy.\n\n\nLike any PBS script, a worker PBS file has to be in UNIX format!\n\n\nIf you edited a PBS script on your desktop, or something went wrong\nduring sftp/scp, the PBS file may end up in DOS/Windows format, i.e.,\nit has the wrong line endings.  The PBS/torque queue system can not\ndeal with that, so you will have to convert the file, e.g., for\nfile \nrun.pbs\n:\n\n\n$ dos2unix run.pbs", 
+            "title": "Trouble shooring"
+        }, 
+        {
+            "location": "/changes/", 
+            "text": "New in version 1.6.0\n\n\n\n\nwreduce\n: a more generic result aggregation function where one can\n    any reductor (think wcat, but with a user-defined operator)\n\n\nwork item start is now also logged, worker ID is logged for all events\n\n\nwload\n: provides load balancing information to analyse job efficiency\n\n\nuser access to MPI_Test sleep time (for power users only)\n\n\ndocumentation expanded and made available on the web\n\n\n\n\nChanged in version 1.5.2\n\n\n\n\nincreased WORK_STR_LENGTH from 4 kb to 1 Mb\n\n\n\n\nNew in version 1.5.1\n\n\n\n\nPBS scripts can use \nWORKER_RANK\n and \nWORKER_SIZE\n for process binding\n\n\n\n\nNew in version 1.5.0\n\n\n\n\nSupport for multithreaded work items", 
+            "title": "Changes"
+        }, 
+        {
+            "location": "/contact/", 
+            "text": "Contact \n support\n\n\nBug reports and feature request can be sent to the developer, \nGeert Jan Bex\n, Hasselt University, or preferably, be submitted as issues on \nGitHub\n.\n\n\nAlthough the code is publicly available on GitHub, it is nevertheless an internal tool, so no support under any form is guaranteed, although it may be provided.  It is released under the terms and conditions of the GNU General public license, version 3.", 
+            "title": "Contact information"
+        }, 
+        {
+            "location": "/contact/#contact-support", 
+            "text": "Bug reports and feature request can be sent to the developer,  Geert Jan Bex , Hasselt University, or preferably, be submitted as issues on  GitHub .  Although the code is publicly available on GitHub, it is nevertheless an internal tool, so no support under any form is guaranteed, although it may be provided.  It is released under the terms and conditions of the GNU General public license, version 3.", 
+            "title": "Contact &amp; support"
+        }
+    ]
+}
