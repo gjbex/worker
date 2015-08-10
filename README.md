@@ -273,6 +273,9 @@ $ dos2unix run.pbs
 
 Changes
 -------
+Changed in version 1.6.1
+  * bug fix for absolute paths of prologue/epilogue files
+
 New in version 1.6.0
   * wreduce: a more generic result aggregation function where one can
     any reductor (think wcat, but with a user-defined operator)
