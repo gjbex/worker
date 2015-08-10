@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Config::General;
+use File::Basename;
 use File::Copy;
 use File::Temp qw/ tempdir /;
 use FindBin;
@@ -96,8 +97,8 @@ my $retry = 0;
 my $enable_prolog = 0;
 my $disable_epilog = 0;
 my $disable_options = 0;
-my $prolog = undef;
-my $epilog = undef;
+my $prolog_file = undef;
+my $epilog_file = undef;
 my $mpi_verbose = undef;
 my $master = 0;
 my $threaded = 0;
@@ -110,12 +111,12 @@ my $quiet = 0;
 my $pbs_array_str = undef;
 
 GetOptions(
-i      "jobid=s"         => \$jobid,
+       "jobid=s"         => \$jobid,
 	   "retry"           => \$retry,
        "enable_prolog"   => \$enable_prolog,
 	   "disable_epilog"  => \$disable_epilog,
-	   "prolog=s"        => \$prolog,
-	   "epilog=s"        => \$epilog,
+	   "prolog=s"        => \$prolog_file,
+	   "epilog=s"        => \$epilog_file,
 	   "disable_options" => \$disable_options,
 	   "mpiverbose"      => \$mpi_verbose,
 	   "verbose"         => \$verbose,
@@ -148,19 +149,19 @@ suppressed_option('-N', $job_name);
 suppressed_option('-C', $directive_prefix);
 suppressed_option('-t', $pbs_array_str);
 # check whether only prolog or redo prolog is specified
-if ($enable_prolog && defined $prolog) {
+if ($enable_prolog && defined $prolog_file) {
     print STDERR "### error: either original prolog or a new prolog can\n";
     print STDERR "           be executed, both are specified\n";
     exit 3;
 }
 # check whether only epilog or redo epilog is specified
-if (!$disable_epilog && defined $epilog) {
+if (!$disable_epilog && defined $epilog_file) {
     print STDERR "### error: either original epilog or new epilog can\n";
     print STDERR "           be executed, both are specified\n";
     exit 3;
 }
-check_file($prolog, "prolog file") if defined $prolog;
-check_file($epilog, "epilog file") if defined $epilog;
+check_file($prolog_file, "prolog file") if defined $prolog_file;
+check_file($epilog_file, "epilog file") if defined $epilog_file;
 
 # find files related to the specified job ID, check only in the current
 # directory since this is supposed to be the working directory for resuming
@@ -181,13 +182,13 @@ push(@ARGV, '-N', $job_name);
 # if prolog and/or epilog have to be redone, find out the name and check
 if ($enable_prolog) {
     my $prolog_ext = compute_file_extension($default_pro);
-    $prolog = $jobfiles{$prolog_ext};
-    check_file($prolog, 'prolog file');
+    $prolog_file = $jobfiles{$prolog_ext};
+    check_file($prolog_file, 'prolog file');
 }
 if (!$disable_epilog) {
     my $epilog_ext = compute_file_extension($default_epi);
-    $epilog = $jobfiles{$epilog_ext};
-    check_file($epilog, 'epilog file') if defined $epilog;
+    $epilog_file = $jobfiles{$epilog_ext};
+    check_file($epilog_file, 'epilog file') if defined $epilog_file;
 }
 
 # using the log and the task file, get a list of tasks to be done
@@ -261,6 +262,16 @@ if ($threaded) {
     $pbs_directives =~ s/\bppn\s*=\s*\d+/ppn=$cores_per_node/g;
 }
 
+# determine basename of prolog/epilog
+my $prolog_basename = undef;
+if (defined $prolog_file) {
+    $prolog_basename = basename($prolog_file);
+}
+my $epilog_basename = undef;
+if (defined $epilog_file) {
+    $epilog_basename = basename($epilog_file);
+}
+
 # initialize the variables to fill out the PBS template, and create
 # PBS file
 msg("creating PBS file...");
@@ -270,8 +281,8 @@ my $vars = {
     'dir'            => "$dir/",
     'worker'         => $worker,
     'verbose'        => $mpi_verbose,
-    'prolog'         => $prolog,
-    'epilog'         => $epilog,
+    'prolog'         => $prolog_basename,
+    'epilog'         => $epilog_basename,
     'logfile'        => $log_file,
     'master'         => $master,
     'threaded'       => $threaded,
@@ -301,11 +312,12 @@ msg("PBS file created");
 
 msg("copying files to temp directory '$dir'...");
 # copy prolog and epilog to directory if they exist
-copy($prolog, "$dir/$prolog") if defined $prolog;
-copy($epilog, "$dir/$epilog") if defined $epilog;
+copy($prolog_file, "$dir/$prolog_basename") if defined $prolog_file;
+copy($epilog_file, "$dir/$epilog_basename") if defined $epilog_file;
 
 # copy PBS file to directory
-copy($pbs_file, "$dir/$pbs_file");
+my $pbs_basename = basename($pbs_file);
+copy($pbs_file, "$dir/$pbs_basename");
 msg("files copied to temp directory '$dir'");
 
 my @run_options = ();
@@ -364,31 +376,25 @@ sub merge_options {
     return @options;
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # creates a shell script to submit the job to the queue system
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
     unless (open(OUT, ">$file_name")) {
-        print STDERR "### error: can't create '$file_name': $!\n";
-        exit 2;
+	print STDERR "### error: can't create '$file_name': $!\n";
+	exit 2;
     }
     print OUT "#!/bin/bash -l\n\n";
     print OUT create_run_cmd(@_), "\n";
     close(OUT);
 }
-# ----------------------------------------------------------------------------
-# create the job submission command
-# ----------------------------------------------------------------------------
-sub create_run_cmd {
-    return "$qsub " . join(" ", quote_options(@_)) . " $pbs_file";
-}
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # function to warn when an option that is going to be ignored is passed
 # on the command line
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub suppressed_option {
     my ($flag, $value) = @_;
     if (defined $value) {
@@ -397,10 +403,10 @@ sub suppressed_option {
     }
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # function to find all files related to the specified job ID, returned as
 # hash with extension as key, file name as value
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub find_job_files {
     my ($jobid) = @_;
     msg("find files related to job '$jobid'...");
@@ -419,9 +425,9 @@ sub find_job_files {
     return %jobfiles;
 }
     
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # function to compute job name from job file
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub compute_job_name {
     my ($file_name, $ext) = @_;
     if ($file_name =~ /^(.+)\.$ext[0-9]+$/) {
@@ -431,30 +437,16 @@ sub compute_job_name {
     }
 }
 
-# ----------------------------------------------------------------------------
-# creates a shell script to submit the job to the queue system
-# ----------------------------------------------------------------------------
-sub create_run_script {
-    my $run_script = shift(@_);
-    my $file_name = "${run_script}";
-    unless (open(OUT, ">$file_name")) {
-        print STDERR "### error: can't create '$file_name': $!\n";
-        exit 2;
-    }
-    print OUT "#!/bin/bash\n\n";
-    print OUT create_run_cmd(@_), "\n";
-    close(OUT);
-}
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # create the job submission command
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub create_run_cmd {
-    return "$qsub " . join(" ", @_) . " $pbs_file";
+    return "$qsub " . join(" ", quote_options(@_)) . " $pbs_file";
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # compute the requested resources from the command line arguments
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub get_cmd_line_resources {
     my @values = ();
     while (@_) {
@@ -475,9 +467,9 @@ sub get_cmd_line_resources {
     }
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # print the script's help stuff
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub print_help {
     print STDERR <<EOI
 ### usage: wresume  -jobid <jobID>                             \\
@@ -538,15 +530,13 @@ sub show_help {
     print_help();
     exit 0;
 }
-# ----------------------------------------------------------------------------
-
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # writes a string to the specified file
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub dump2file {
     my ($str, $file) = @_;
     open(OUT, ">$file") or die("Can't open dump file '$file': $!");
     print OUT $str;
     close(OUT);
 }
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------

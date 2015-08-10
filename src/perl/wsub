@@ -291,6 +291,16 @@ if ($threaded) {
     $pbs_directives =~ s/\bppn\s*=\s*\d+/ppn=$cores_per_node/g;
 }
 
+# determine basename of prolog/epilog
+my $prolog_basename = undef;
+if (defined $prolog_file) {
+    $prolog_basename = basename($prolog_file);
+}
+my $epilog_basename = undef;
+if (defined $epilog_file) {
+    $epilog_basename = basename($epilog_file);
+}
+
 # initialize the variables to fill out the PBS template, and create
 # PBS file
 msg("creating PBS file..");
@@ -300,8 +310,8 @@ my $vars = {
     'dir'            => "$dir/",
     'worker'         => $worker,
     'verbose'        => $mpi_verbose,
-    'prolog'         => $prolog_file,
-    'epilog'         => $epilog_file,
+    'prolog'         => $prolog_basename,
+    'epilog'         => $epilog_basename,
     'logfile'        => $log_file,
     'master'         => $master,
     'threaded'       => $threaded,
@@ -353,11 +363,12 @@ if (defined $directive_prefix) {
 create_run_script("${dir}/${batch_tmpl_file}${run_ext}", @ARGV);
 
 # copy prolog and epilog to directory if they exist
-copy($prolog_file, "$dir/$prolog_file") if defined $prolog_file;
-copy($epilog_file, "$dir/$epilog_file") if defined $epilog_file;
+copy($prolog_file, "$dir/$prolog_basename") if defined $prolog_file;
+copy($epilog_file, "$dir/$epilog_basename") if defined $epilog_file;
 
 # copy PBS file to directory
-copy($pbs_file, "$dir/$pbs_file");
+my $pbs_basename = basename($pbs_file);
+copy($pbs_file, "$dir/$pbs_basename");
 
 # create submission command, execute unless dry run
 my $submit_cmd = create_run_cmd(@ARGV);
@@ -375,13 +386,13 @@ if (defined $dryrun) {
 # succesfully completed wsub
 exit 0;
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Computes the job name:
 #  1) if -N is a command line option, use it;
 #  2) if -N is a PBS directive in the batch file template, use that;
 #  3) use the bash file template's basename.
 # Semantics in accordance with torque's qsub.
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub compute_pbs_jobname {
     my ($pbs_jobname, $pbs, $batch_tmpl) = @_;
     my $job_name = $pbs_jobname;
@@ -395,10 +406,10 @@ sub compute_pbs_jobname {
     return $job_name;
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # preprocess the batch template file string to convert $var to [%var%]
 # if they occur in the parameter list
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub preprocess {
     my $batch_in = shift(@_);
     my $sh1 = IO::Scalar->new(\$batch_in);
@@ -411,9 +422,9 @@ sub preprocess {
     return $str;
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # create file containing array IDs derived from -t array request options
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub create_arrayid_file {
     my $pbs_arrayid_file = shift(@_);
     unless (open(OUT, ">$pbs_arrayid_file")) {
@@ -425,9 +436,9 @@ sub create_arrayid_file {
     close(OUT);
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # creates a shell script to submit the job to the queue system
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub create_run_script {
     my $run_script = shift(@_);
     my $file_name = "${run_script}";
@@ -439,16 +450,16 @@ sub create_run_script {
     print OUT create_run_cmd(@_), "\n";
     close(OUT);
 }
-# ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # create the job submission command
-# ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 sub create_run_cmd {
     return "$qsub " . join(" ", quote_options(@_)) . " $pbs_file";
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # compute the requested resources from the command line arguments
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub get_cmd_line_resources {
     my @values = ();
     while (@_) {
@@ -469,9 +480,9 @@ sub get_cmd_line_resources {
     }
 }
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # print the script's help stuff
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub print_help {
     print STDERR <<EOI
 ### usage: wsub  -batch <batch-file>          \\
@@ -534,15 +545,14 @@ sub show_help {
     print_help();
     exit 0;
 }
-# ----------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # writes a string to the specified file
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub dump2file {
     my ($str, $file) = @_;
     open(OUT, ">$file") or die("Can't open dump file '$file': $!");
     print OUT $str;
     close(OUT);
 }
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
