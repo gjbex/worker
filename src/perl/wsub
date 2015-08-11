@@ -24,19 +24,11 @@ sub BEGIN {
 use Worker::CsvProvider;
 use Worker::DataProvider;
 use Worker::Preprocessor;
-use Worker::Utils qw( parse_hdr check_file msg quote_options );
+use Worker::Utils;
 use Pbs::Parser;
 
 # directory containing the Worker software
-my $worker_dir = undef;
-if (exists $ENV{WORKER_DIR} && defined $ENV{WORKER_DIR} &&
-        length($ENV{WORKER_DIR}) > 0) {
-    $worker_dir = "$ENV{WORKER_DIR}";
-} else {
-    $worker_dir = "$FindBin::Bin/..";
-}
-$worker_dir .= '/' unless length($worker_dir) == 0 || $worker_dir =~ m|/$|;
-check_file($worker_dir, 'worker directory', 1, 1);
+my $worker_dir = find_worker_dir();
 
 my $config_file = "${worker_dir}/conf/worker.conf";
 check_file($config_file, 'configuration file', 1);

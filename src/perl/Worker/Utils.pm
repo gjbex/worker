@@ -7,7 +7,7 @@ use base qw( Exporter );
 our @EXPORT_OK = qw(
         parse_hdr check_file compute_file_extension msg
         quote_options hash_options get_cmd_line_resources
-        create_run_cmd create_run_script dump2file
+        create_run_cmd create_run_script dump2file find_worker_dir
 );
 our $verbose = 0;
 our $default_email = 'hpcinfo@icts.kuleuven.be';
@@ -179,6 +179,23 @@ sub dump2file {
     open(OUT, ">$file") or die("Can't open dump file '$file': $!");
     print OUT $str;
     close(OUT);
+}
+
+# ----------------------------------------------------------------------
+# directory containing the Worker software
+# ----------------------------------------------------------------------
+sub find_worker_dir {
+    my $worker_dir = undef;
+    if (exists $ENV{WORKER_DIR} && defined $ENV{WORKER_DIR} &&
+            length($ENV{WORKER_DIR}) > 0) {
+        $worker_dir = "$ENV{WORKER_DIR}";
+    } else {
+        $worker_dir = "$FindBin::Bin/..";
+    }
+    $worker_dir .= '/'
+        unless length($worker_dir) == 0 || $worker_dir =~ m|/$|;
+    check_file($worker_dir, 'worker directory', 1, 1);
+    return $worker_dir;
 }
 
 1;
