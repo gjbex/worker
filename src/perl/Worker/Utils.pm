@@ -78,6 +78,9 @@ sub msg {
     print "$msg\n" if $verbose;
 }
 
+# ---------------------------------------------------------------------- 
+# escape single and double quotes in strings
+# ---------------------------------------------------------------------- 
 sub escape {
     my $str = shift(@_);
     $str =~ s/'/\\'/g;
@@ -100,18 +103,22 @@ sub quote_options {
     return @options;
 }
 
+# -----------------------------------------------------------------------
+# coompute a hash of command line arguments, flags have undef as value,
+# options their specified value
+# -----------------------------------------------------------------------
 sub hash_options {
-    my %hash = ();
+    my $hash = {};
     my $prev_opt = undef;
     foreach my $str (@_) {
         if ($str =~ /^\-/) {
             $prev_opt = $str;
-            $hash{$prev_opt} = undef;
+            $hash->{$prev_opt} = undef;
         } else {
-            $hash{$prev_opt} = $str;
+            $hash->{$prev_opt} = $str;
         }
     }
-    return \%hash;
+    return $hash;
 }
 
 1;
