@@ -15,11 +15,11 @@ sub new {
     return $self;
 }
 
-# ------------
+# ----------------------------------------------------------------------
 # Interface methods
 # ----------------------------------------------------------------------
 # checks whether a sets of variables is available
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub has_next {
     my $self = shift(@_);
     foreach my $provider ($self->get_providers()) {
@@ -72,6 +72,47 @@ sub get_providers {
 sub add_provider {
     my ($self, $provider) = @_;
     push(@{$self->{provider_list}}, $provider);
+}
+
+# ----------------------------------------------------------------------
+# Given a number of data sources, create an aggregated provider
+# ----------------------------------------------------------------------
+sub create {
+    my $options = shift(@_);
+    my @data_files = @_;
+    my $pbs_array_str = $options->{pbs_array_str};
+    my $arrayid_file_name = $options->{arrayid_file_name};
+    my $allow_loose_quotes = $options->{allow_loose_quotes};
+    my $escape_char = $options->{escape_char};
+    my @providers = ();
+# create the PBS array ID file if -t was supplied
+    if (defined $pbs_array_str) {
+        create_arrayid_file($arrayid_file_name,
+                $pbs_parser->parse_arrayid_str($pbs_array_str));
+        push(@providers, Worker::CsvProvider->new($arrayid_file_name,
+                                                  $allow_loose_quotes,
+                                                  $escape_char));
+        msg("array id provider created");
+    }
+
+# create the appropriate provider
+    foreach my $data_file (@data_files) {
+        eval {
+            push(@providers, Worker::CsvProvider->new($data_file,
+                                                      $allow_loose_quotes,
+                                                      $escape_char));
+        };
+        if ($@) {
+            print STDERR "### error parsing '$data_file': $@";
+            exit 7;
+        }
+        msg("data file provider '$data_file' created");
+    }
+
+    my $provider = Worker::DataProvider->new(@providers);
+    msg("all providers created");
+
+    return $provider;
 }
 
 1;

@@ -181,40 +181,24 @@ unless ($pbs->has_script()) {
 }
 msg("batch template file parsed");
 
+my $arrayid_file_name = "${batch_tmpl}${arrayid_ext}";
 # create data providers
 msg("creating providers...");
-my @providers = ();
-# create the PBS array ID file if -t was supplied
-my $arrayid_file_name = "${batch_tmpl}${arrayid_ext}";
-if (defined $pbs_array_str) {
-    create_arrayid_file($arrayid_file_name,
-            $pbs_parser->parse_arrayid_str($pbs_array_str));
-    push(@providers, Worker::CsvProvider->new($arrayid_file_name,
-                                              $allow_loose_quotes,
-                                              $escape_char));
-    msg("array id provider created");
-}
-
-# create the appropriate provider
-foreach my $data_file (@data_files) {
-    eval {
-        push(@providers, Worker::CsvProvider->new($data_file,
-                                                  $allow_loose_quotes,
-                                                  $escape_char));
-    };
-    if ($@) {
-        print STDERR "### error parsing '$data_file': $@";
-        exit 7;
-    }
-    msg("data file provider '$data_file' created");
-}
-
-my $provider = Worker::DataProvider->new(@providers);
+my $provider = Worker::DataProvider->create(
+    {
+        'pbs_array_str' => $pbs_array_str,
+        'arrayid_file_name' => $arrayid_file_name,
+        'allow_loose_quotes' => $allow_loose_quotes,
+        'escape_char' => $escape_char
+    },
+    @data_files
+);
 msg("all providers created");
 
 # get all variable names and preprocss batch file template string
 my @variables = $provider->get_vars();
-msg("preprocessing script for " . join(', ', map {"'$_'"} @variables) . '...');
+msg("preprocessing script for " . join(', ', map {"'$_'"} @variables) .
+    '...');
 my $batch_str = preprocess($pbs->get_script(), @variables);
 msg("script preprocessed");
 dump2file($batch_str, "${batch_tmpl}${prepr_ext}") if $verbose;
