@@ -4,10 +4,13 @@ use strict;
 use warnings;
 use base qw( Exporter );
 
-our @EXPORT_OK = qw( parse_hdr check_file compute_file_extension msg
-		     quote_options hash_options );
+our @EXPORT_OK = qw(
+        parse_hdr check_file compute_file_extension msg
+        quote_options hash_options get_cmd_line_resources
+        create_run_cmd create_run_script dump2file
+);
 our $verbose = 0;
-our $default_email = 'hpcinfo@cc.kuleuven.be';
+our $default_email = 'hpcinfo@icts.kuleuven.be';
 
 # ----------------------------------------------------------------------
 # parse a C header file to determine the batch file separator
@@ -29,8 +32,8 @@ sub parse_hdr {
 }
 
 # ----------------------------------------------------------------------
-# checks whether a given file exists and is readable, if not, print error
-# and exit
+# checks whether a given file exists and is readable, if not, print
+# error and exit
 # ----------------------------------------------------------------------
 sub check_file {
     my ($file, $file_type, $is_system, $is_exec, $email) = @_;
@@ -119,6 +122,63 @@ sub hash_options {
         }
     }
     return $hash;
+}
+
+# ----------------------------------------------------------------------
+# compute the requested resources from the command line arguments
+# ----------------------------------------------------------------------
+sub get_cmd_line_resources {
+    my @values = ();
+    while (@_) {
+        my $option = shift(@_);
+        if ($option eq '-l') {
+            if (@_) {
+                my $value = shift(@_);
+                push(@values, $value);
+            }
+        } elsif ($option =~ /^-l(.+)$/) {
+            push(@values, $1);
+        }
+    }
+    if (@values) {
+        return join(',', @values);
+    } else {
+        return undef;
+    }
+}
+
+# ---------------------------------------------------------------------
+# create the job submission command
+# ---------------------------------------------------------------------
+sub create_run_cmd {
+    my $qsub = shift(@_);
+    my $pbs_file = shift(@_);
+    return "$qsub " . join(" ", quote_options(@_)) . " $pbs_file";
+}
+
+# ----------------------------------------------------------------------
+# creates a shell script to submit the job to the queue system
+# ----------------------------------------------------------------------
+sub create_run_script {
+    my $run_script = shift(@_);
+    my $file_name = "${run_script}";
+    unless (open(OUT, ">$file_name")) {
+	print STDERR "### error: can't create '$file_name': $!\n";
+	exit 2;
+    }
+    print OUT "#!/bin/bash -l\n\n";
+    print OUT create_run_cmd(@_), "\n";
+    close(OUT);
+}
+
+# ----------------------------------------------------------------------
+# writes a string to the specified file
+# ----------------------------------------------------------------------
+sub dump2file {
+    my ($str, $file) = @_;
+    open(OUT, ">$file") or die("Can't open dump file '$file': $!");
+    print OUT $str;
+    close(OUT);
 }
 
 1;

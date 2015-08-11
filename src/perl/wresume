@@ -340,7 +340,7 @@ if ($disable_options) {
 create_run_script("${dir}/${job_name}${run_ext}", @run_options);
 
 # create submission command, execute unless dry run
-my $submit_cmd = create_run_cmd(@run_options);
+my $submit_cmd = create_run_cmd($qsub, $pbs_file, @run_options);
 if (defined $dryrun) {
     print "$submit_cmd\n";
 } else {
@@ -354,10 +354,10 @@ if (defined $dryrun) {
 # succesfully completed wresume
 exit 0;
 
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # function to merge old and new options, giving priority to the latter,
 # excluding irrelavant options from the old options
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub merge_options {
     my ($current_options, $previous_options, $exclude) = @_;
     my @options = ();
@@ -374,21 +374,6 @@ sub merge_options {
             if defined $temp_options{$flag};
     }
     return @options;
-}
-
-# ----------------------------------------------------------------------
-# creates a shell script to submit the job to the queue system
-# ----------------------------------------------------------------------
-sub create_run_script {
-    my $run_script = shift(@_);
-    my $file_name = "${run_script}";
-    unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
-    }
-    print OUT "#!/bin/bash -l\n\n";
-    print OUT create_run_cmd(@_), "\n";
-    close(OUT);
 }
 
 # ----------------------------------------------------------------------
@@ -434,36 +419,6 @@ sub compute_job_name {
         return $1;
     } else {
         die("### error: can't determine job name from '$file_name' using '$ext'");
-    }
-}
-
-# ----------------------------------------------------------------------
-# create the job submission command
-# ----------------------------------------------------------------------
-sub create_run_cmd {
-    return "$qsub " . join(" ", quote_options(@_)) . " $pbs_file";
-}
-
-# ----------------------------------------------------------------------
-# compute the requested resources from the command line arguments
-# ----------------------------------------------------------------------
-sub get_cmd_line_resources {
-    my @values = ();
-    while (@_) {
-        my $option = shift(@_);
-        if ($option eq '-l') {
-            if (@_) {
-                my $value = shift(@_);
-                push(@values, $value);
-            }
-        } elsif ($option =~ /^-l(.+)$/) {
-            push(@values, $1);
-        }
-    }
-    if (@values) {
-        return join(',', @values);
-    } else {
-        return undef;
     }
 }
 
@@ -523,20 +478,10 @@ sub print_help {
 #                           that is resumed
 EOI
 }
-# ------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # shows help and exits
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 sub show_help {
     print_help();
     exit 0;
 }
-# ----------------------------------------------------------------------
-# writes a string to the specified file
-# ----------------------------------------------------------------------
-sub dump2file {
-    my ($str, $file) = @_;
-    open(OUT, ">$file") or die("Can't open dump file '$file': $!");
-    print OUT $str;
-    close(OUT);
-}
-# ----------------------------------------------------------------------
