@@ -71,7 +71,7 @@ my $separator = parse_hdr($worker_hdr);
 my $qsub = $conf{qsub};       # qsub command to use in run script
 my $email = $conf{email};     # email to send complaints to
 
-# number of cores per node (hardware property
+# number of cores per node (hardware property)
 my $cores_per_node = $conf{cores_per_node};
 
 # test whether necessary files can be found and read
@@ -288,8 +288,8 @@ my $vars = {
     'default_pbs'    => $default_pbs,
     'default_host'   => $default_host,
     'batch_ext'      => $batch_ext,
-    'pbs_file'       => $pbs_file,
     'run_ext'        => $run_ext,
+    'pbs_file'       => $pbs_file,
     'mpi_module'     => $conf{mpi_module},
     'mpirun'         => $conf{mpirun},
     'mpirun_options' => $conf{mpirun_options},

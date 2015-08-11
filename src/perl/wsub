@@ -322,7 +322,6 @@ my $vars = {
     'pbs_file'       => $pbs_file,
     'unload_modules' => $conf{unload_modules},
     'threaded'       => $threaded,
-    'ppn'            => $ppn,
     'mpi_module'     => $conf{mpi_module},
     'mpirun'         => $conf{mpirun},
     'mpirun_options' => $conf{mpirun_options},
