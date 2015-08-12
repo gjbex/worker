@@ -1,2 +1,3 @@
 SUBDIRS = Worker Pbs
-dist_bin_SCRIPTS =  wcat wconvert wresume wsub wsummarize wreduce wload
+dist_bin_SCRIPTS =  wcat wconvert witems wresume wsub wsummarize wreduce \
+                    wload
