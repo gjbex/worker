@@ -21,7 +21,9 @@ sub BEGIN {
 
 use Worker::CsvProvider;
 use Worker::DataProvider;
-use Worker::Utils;
+use Worker::Utils qw(
+    check_file msg find_worker_dir
+);
 
 # directory containing the Worker software
 my $worker_dir = find_worker_dir();

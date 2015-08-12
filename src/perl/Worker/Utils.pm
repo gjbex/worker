@@ -6,8 +6,9 @@ use base qw( Exporter );
 
 our @EXPORT_OK = qw(
         parse_hdr check_file compute_file_extension msg
-        quote_options hash_options get_cmd_line_resources
+        hash_options get_cmd_line_resources
         create_run_cmd create_run_script dump2file find_worker_dir
+        create_arrayid_file
 );
 our $verbose = 0;
 our $default_email = 'hpcinfo@icts.kuleuven.be';
@@ -160,14 +161,15 @@ sub create_run_cmd {
 # creates a shell script to submit the job to the queue system
 # ----------------------------------------------------------------------
 sub create_run_script {
-    my $run_script = shift(@_);
-    my $file_name = "${run_script}";
+    my $file_name = shift(@_);
+    my $qsub = shift(@_);
+    my $pbs_file = shift(@_);
     unless (open(OUT, ">$file_name")) {
-	print STDERR "### error: can't create '$file_name': $!\n";
-	exit 2;
+        print STDERR "### error: can't create '$file_name': $!\n";
+        exit 2;
     }
     print OUT "#!/bin/bash -l\n\n";
-    print OUT create_run_cmd(@_), "\n";
+    print OUT create_run_cmd($qsub, $pbs_file, @_), "\n";
     close(OUT);
 }
 
@@ -196,6 +198,20 @@ sub find_worker_dir {
         unless length($worker_dir) == 0 || $worker_dir =~ m|/$|;
     check_file($worker_dir, 'worker directory', 1, 1);
     return $worker_dir;
+}
+
+# ----------------------------------------------------------------------
+# create file containing array IDs derived from -t array request options
+# ----------------------------------------------------------------------
+sub create_arrayid_file {
+    my $pbs_arrayid_file = shift(@_);
+    unless (open(OUT, ">$pbs_arrayid_file")) {
+	print STDERR "### error: can't open file '$pbs_arrayid_file'\n";
+	exit 2;
+    }
+    print OUT "PBS_ARRAYID\n";
+    print OUT "$_\n" foreach @_;
+    close(OUT);
 }
 
 1;

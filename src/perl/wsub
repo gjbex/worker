@@ -24,7 +24,11 @@ sub BEGIN {
 use Worker::CsvProvider;
 use Worker::DataProvider;
 use Worker::Preprocessor;
-use Worker::Utils;
+use Worker::Utils qw(
+    find_worker_dir check_file msg parse_hdr create_run_script
+    create_run_cmd get_cmd_line_resources create_run_cmd dump2file
+    find_worker_dir
+);
 use Pbs::Parser;
 
 # directory containing the Worker software
@@ -186,10 +190,11 @@ my $arrayid_file_name = "${batch_tmpl}${arrayid_ext}";
 msg("creating providers...");
 my $provider = Worker::DataProvider->create(
     {
-        'pbs_array_str' => $pbs_array_str,
-        'arrayid_file_name' => $arrayid_file_name,
+        'pbs_parser'         => $pbs_parser,
+        'pbs_array_str'      => $pbs_array_str,
+        'arrayid_file_name'  => $arrayid_file_name,
         'allow_loose_quotes' => $allow_loose_quotes,
-        'escape_char' => $escape_char
+        'escape_char'        => $escape_char
     },
     @data_files
 );
@@ -335,7 +340,8 @@ if (defined $directive_prefix) {
 #     not supported by Moab
 
 # create the submission script
-create_run_script("${dir}/${batch_tmpl_file}${run_ext}", @ARGV);
+create_run_script("${dir}/${batch_tmpl_file}${run_ext}", $qsub, $pbs_file,
+                  @ARGV);
 
 # copy prolog and epilog to directory if they exist
 copy($prolog_file, "$dir/$prolog_basename") if defined $prolog_file;
@@ -395,20 +401,6 @@ sub preprocess {
     $sh1->close();
     $sh2->close();
     return $str;
-}
-
-# ----------------------------------------------------------------------
-# create file containing array IDs derived from -t array request options
-# ----------------------------------------------------------------------
-sub create_arrayid_file {
-    my $pbs_arrayid_file = shift(@_);
-    unless (open(OUT, ">$pbs_arrayid_file")) {
-	print STDERR "### error: can't open file '$pbs_arrayid_file'\n";
-	exit 2;
-    }
-    print OUT "PBS_ARRAYID\n";
-    print OUT "$_\n" foreach @_;
-    close(OUT);
 }
 
 # ----------------------------------------------------------------------

@@ -25,7 +25,11 @@ sub BEGIN {
 use Worker::CsvProvider;
 use Worker::DataProvider;
 use Worker::Preprocessor;
-use Worker::Utils;
+use Worker::Utils qw(
+    check_file msg compute_file_extension hash_options
+    get_cmd_line_resources create_run_script create_run_cmd
+    find_worker_dir
+);
 use Worker::ExecutedTasksFilter;
 use Worker::LogParser;
 use Worker::RunfileParser;
@@ -321,14 +325,14 @@ if ($disable_options) {
     $run_parser->parse($jobfiles{$sub_ext});
     my %previous_options = $run_parser->options();
     my $current_options = hash_options(@ARGV);
-    @run_options = quote_options(merge_options($current_options,
-					       \%previous_options,
-					       ['-t', '-C', '-N']));
+    @run_options = merge_options($current_options, \%previous_options,
+                                 ['-t', '-C', '-N']);
     msg("run options merged");
 }
 
 # create the submission script
-create_run_script("${dir}/${job_name}${run_ext}", @run_options);
+create_run_script("${dir}/${job_name}${run_ext}", $qsub, $pbs_file,
+                  @run_options);
 
 # create submission command, execute unless dry run
 my $submit_cmd = create_run_cmd($qsub, $pbs_file, @run_options);

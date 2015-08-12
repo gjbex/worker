@@ -19,7 +19,9 @@ sub BEGIN {
     }
 }
 
-use Worker::Utils;
+use Worker::Utils qw(
+    parse_hdr check_file msg find_worker_dir
+);
 
 # directory containing the Worker software
 my $worker_dir = find_worker_dir();

@@ -3,6 +3,10 @@ package Worker::DataProvider;
 use strict;
 use warnings;
 
+use Worker::Utils qw(
+    msg create_arrayid_file
+);
+
 # ----------------------------------------------------------------------
 # constructor, takes a list of providers as input
 # ----------------------------------------------------------------------
@@ -78,8 +82,10 @@ sub add_provider {
 # Given a number of data sources, create an aggregated provider
 # ----------------------------------------------------------------------
 sub create {
+    my $pkg = shift(@_);
     my $options = shift(@_);
     my @data_files = @_;
+    my $pbs_parser = $options->{pbs_parser};
     my $pbs_array_str = $options->{pbs_array_str};
     my $arrayid_file_name = $options->{arrayid_file_name};
     my $allow_loose_quotes = $options->{allow_loose_quotes};
