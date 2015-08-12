@@ -314,7 +314,7 @@ my $vars = {
     'mpi_module'     => $conf{mpi_module},
     'mpirun'         => $conf{mpirun},
     'mpirun_options' => $conf{mpirun_options},
-    };
+};
 unless ($engine->process($pbs_tmpl, $vars, $pbs_file)) {
     print STDERR "### error: problem with template,\n";
     print STDERR "           ", $engine->error(), "\n";
@@ -357,9 +357,9 @@ if (defined $dryrun) {
     print "$submit_cmd\n";
 } else {
     unless (system($submit_cmd) == 0) {
-	print STDERR "### error: failed to submit job: $!\n";
-	print STDERR "    $submit_cmd\n";
-	exit 3;
+        print STDERR "### error: failed to submit job: $!\n";
+        print STDERR "    $submit_cmd\n";
+        exit 3;
     }
     unlink($pbs_file) unless $verbose;
 }
@@ -378,11 +378,11 @@ sub compute_pbs_jobname {
     my ($pbs_jobname, $pbs, $batch_tmpl) = @_;
     my $job_name = $pbs_jobname;
     if (!defined $job_name && $pbs->has_name()) {
-	$job_name = $pbs->get_name();
+        $job_name = $pbs->get_name();
     }
     if (!defined $job_name) {
-	my $lpos = rindex($batch_tmpl, '/') + 1;
-	$job_name = substr($batch_tmpl, $lpos);
+        my $lpos = rindex($batch_tmpl, '/') + 1;
+        $job_name = substr($batch_tmpl, $lpos);
     }
     return $job_name;
 }
@@ -422,20 +422,26 @@ sub print_help {
 #                [-t <array-req>]             \\
 #                [<pbs-qsub-options>]
 #
+# Submit a worker job to the PBS torque queue system
+#
 #   -batch <batch-file>   : batch file template, containing variables to be
 #                           replaced with data from the data file(s) or the
 #                           PBS array request option
 #   -data <data-files>    : comma-separated list of data files (default CSV
 #                           files) used to provide the data for the work
 #                           items
+#   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
 #   -prolog <prolog-file> : prolog script to be executed before any of the
 #                           work items are executed
 #   -epilog <epilog-file> : epilog script to be executed after all the work
 #                           items are executed
+#   <pbs-qsub-options>    : options passed on to the queue submission
+#                           command
+#   -verbose              : feedback information is written to standard
+#                           error
 #   -mpiverbose           : pass verbose flag to the underlying MPI program
-#   -verbose              : feedback information is written to standard error
-#   -dryrun               : run without actually submitting the job, useful
 #   -quiet                : don't show information
+#   -dryrun               : run without actually submitting the job, useful
 #   -master               : start an extra master process, i.e.,
 #                           the number of slaves will be nodes*ppn
 #   -threaded             : indicates that work items are multithreaded,
@@ -448,16 +454,13 @@ sub print_help {
 #                           MPI_Test to avoid spinning, expressed in
 #                           microseconds; don't use this unless you're
 #                           really sure what you are doing
-#   -t <array-req>        : qsub's PBS array request options, e.g., 1-10
-#   -help                 : print this help message
 #   -allow_loose_quotes   : enable CSV loose quote parsing mode, do not
 #                           use this unless you really know what you are
 #                           doing
 #   -escape_char <c>      : use <c> as escape character for the CSV parser,
 #                           do not use this unless you really know what
 #                           you are doing
-#   <pbs-qsub-options>    : options passed on to the queue submission
-#                           command
+#   -help                 : print this help message
 EOI
 }
 
