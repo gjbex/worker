@@ -3,7 +3,7 @@ site_description: worker is intended to easily submit and manage embarrasignly p
 site_author: Geert Jan Bex
 pages:
 - Introduction and motivation: 'index.md'
-- Step by step: 'index.md'
+- Step by step: 'steps.md'
 - Prologue and epilogue: 'mapreduce.md'
 - Monitoring worker jobs: 'monitoring.md'
 - Limiting execution time: 'time_limits.md'
