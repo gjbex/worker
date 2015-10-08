@@ -1,4 +1,4 @@
-As prerequisites, one should have a (sequential) job you have to run many times for various parameter values. We will use a non-existent program cfd-test by way of running example.
+As prerequisites, one should have a (sequential) job that has to be run many times for various parameter values, or on a large number of input files. By way of running example, we will use a non-existent program cfd_test for the former case, and an equally non-existent word_count for the latter case.
 
 We will consider the following use cases already mentioned above:
 
@@ -7,9 +7,9 @@ We will consider the following use cases already mentioned above:
 
 ## Parameter variations
 
-Suppose the program the user wishes to run is 'cfd-test' (this program does not exist, it is just an example) that takes three parameters, a temperature, a pressure and a volume. A typical call of the program looks like:
+Suppose the program the user wishes to run is 'cfd_test' (this program does not exist, it is just an example) that takes three parameters, a temperature, a pressure and a volume. A typical call of the program looks like:
 ```
-cfd-test -t 20 -p 1.05 -v 4.3
+cfd_test -t 20 -p 1.05 -v 4.3
 ```
 The program will write its results to standard output. A PBS script (say run.pbs) that would run this as a job would then look like:
 ```
@@ -17,7 +17,7 @@ The program will write its results to standard output. A PBS script (say run.pbs
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=00:15:00
 cd $PBS_O_WORKDIR
-cfd-test -t 20  -p 1.05  -v 4.3
+cfd_test -t 20  -p 1.05  -v 4.3
 ```
 When submitting this job, the calculation is performed or this particular instance of the parameters, i.e., temperature = 20, pressure = 1.05, and volume = 4.3. To submit the job, the user would use:
 ```
@@ -29,7 +29,7 @@ However, the user wants to run this program for many parameter instances, e.g., 
 #PBS -l nodes=1:ppn=8
 #PBS -l walltime=04:00:00
 cd $PBS_O_WORKDIR
-cfd-test -t $temperature  -p $pressure  -v $volume
+cfd_test -t $temperature  -p $pressure  -v $volume
 ```
 Note that
   * the parameter values 20, 1.05, 4.3 have been replaced by variables $temperature, $pressure and $volume respectively;
@@ -54,7 +54,7 @@ The job can now be submitted as follows:
 $ module load worker
 $ wsub -batch run.pbs -data data.txt
 ```
-Note that the PBS file is the value of the -batch option . The cfd-test program will now be run for all 100 parameter instances — 7 concurrently — until all computations are done. A computation for such a parameter instance is called a work item in Worker parlance.
+Note that the PBS file is the value of the -batch option . The cfd_test program will now be run for all 100 parameter instances — 7 concurrently — until all computations are done. A computation for such a parameter instance is called a work item in Worker parlance.
 
 ## Job arrays
 
@@ -70,9 +70,9 @@ A typical PBS script run.pbs for use with job arrays would look like this:
 cd $PBS_O_WORKDIR
 INPUT_FILE="input_${PBS_ARRAYID}.dat"
 OUTPUT_FILE="output_${PBS_ARRAYID}.dat"
-cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
+word_count -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 ```
-As in the previous section, the cfd-test program does not exist. Input for the program is stored in files with names such as ```input_1.dat```, ```input_2.dat```, ..., ```input_100.dat``` that the user produced by whatever means, and the corresponding output computed by cfd-test is written to ```output_1.dat```, ```output_2.dat```, ..., ```output_100.dat```. (Here we assume that the non-existent cfd-test program takes options -input and -output.)
+As in the previous section, the word_count program does not exist. Input for the program is stored in files with names such as ```input_1.dat```, ```input_2.dat```, ..., ```input_100.dat``` that the user produced by whatever means, and the corresponding output computed by word_count is written to ```output_1.dat```, ```output_2.dat```, ..., ```output_100.dat```. (Here we assume that the non-existent word_count program takes options -input and -output.)
 
 The job would be submitted using:
 ```
@@ -88,7 +88,7 @@ Using worker, a feature akin to job arrays can be used with minimal modification
 cd $PBS_O_WORKDIR
 INPUT_FILE="input_${PBS_ARRAYID}.dat"
 OUTPUT_FILE="output_${PBS_ARRAYID}.dat"
-cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
+word_count -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 ```
 Note that
   * the number of CPUs is increased to 8 (ppn=1 is replaced by ppn=8); and
@@ -101,4 +101,4 @@ The job is now submitted as follows:
 $ module load worker
 $ wsub -t 1-100  -batch run.pbs
 ```
-The cfd-test program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.
+The word_count program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.

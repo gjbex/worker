@@ -5,7 +5,7 @@ Sometimes, the execution of a work item takes long than expected, or worse, some
 #PBS -l walltime=04:00:00
 module load timedrun
 cd $PBS_O_WORKDIR
-timedrun -t 00:20:00 cfd-test -t $temperature  -p $pressure  -v $volume
+timedrun -t 00:20:00 cfd_test -t $temperature  -p $pressure  -v $volume
 ```
 Note that it is trivial to set individual time constraints for work items by introducing a parameter, and including the values of the latter in the CSV file, along with those for the temperature, pressure and volume.
 

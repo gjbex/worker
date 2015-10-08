@@ -3,22 +3,22 @@
 ## Job arrays
 
 The user prepares a PBS script that calls a program, e.g.,
-`cfd-solver`, that takes an parameter file specified on the
+`cfd_solver`, that takes an parameter file specified on the
 command line.  The PBS file `cfd.pbs` could look something like:
 ```
 #!/bin/bash -l
-#PBS -N cfd-solver
+#PBS -N cfd_solver
 #PBS -l nodes=1
 #PBS -l walltime=00:05:00
 
 cd $PBS_O_WORKDIR
 
-cfd-solver -p parameters-$PBS_ARRAYID.cfg > result-$PBS_ARRAYID.dat
+cfd_solver -p parameters-$PBS_ARRAYID.cfg > result-$PBS_ARRAYID.dat
 ```
 
 For 100 parameter instances called `parameters-1.cfg`,...,
 `parameters-100.cfg`, the following obsolete `qsub` command would run
-`cfd-solver` on each of those 100 parameter files, saving the results of
+`cfd_solver` on each of those 100 parameter files, saving the results of
 each run in `result-1.dat`, ..., `result-100.dat` respectively:
 ```
 qsub  -t 1-100  cfd.pbs

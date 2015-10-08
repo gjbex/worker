@@ -182,15 +182,15 @@
           <div role="main">
             <div class="section">
               
-                <p>As prerequisites, one should have a (sequential) job you have to run many times for various parameter values. We will use a non-existent program cfd-test by way of running example.</p>
+                <p>As prerequisites, one should have a (sequential) job that has to be run many times for various parameter values, or on a large number of input files. By way of running example, we will use a non-existent program cfd_test for the former case, and an equally non-existent word_count for the latter case.</p>
 <p>We will consider the following use cases already mentioned above:</p>
 <ul>
 <li>parameter variations, i.e., many small jobs determined by a specific parameter set;</li>
 <li>job arrays, i.e., each individual job got a unique numeric identifier.</li>
 </ul>
 <h2 id="parameter-variations">Parameter variations</h2>
-<p>Suppose the program the user wishes to run is 'cfd-test' (this program does not exist, it is just an example) that takes three parameters, a temperature, a pressure and a volume. A typical call of the program looks like:</p>
-<pre><code>cfd-test -t 20 -p 1.05 -v 4.3
+<p>Suppose the program the user wishes to run is 'cfd_test' (this program does not exist, it is just an example) that takes three parameters, a temperature, a pressure and a volume. A typical call of the program looks like:</p>
+<pre><code>cfd_test -t 20 -p 1.05 -v 4.3
 </code></pre>
 
 <p>The program will write its results to standard output. A PBS script (say run.pbs) that would run this as a job would then look like:</p>
@@ -198,7 +198,7 @@
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=00:15:00
 cd $PBS_O_WORKDIR
-cfd-test -t 20  -p 1.05  -v 4.3
+cfd_test -t 20  -p 1.05  -v 4.3
 </code></pre>
 
 <p>When submitting this job, the calculation is performed or this particular instance of the parameters, i.e., temperature = 20, pressure = 1.05, and volume = 4.3. To submit the job, the user would use:</p>
@@ -210,7 +210,7 @@ cfd-test -t 20  -p 1.05  -v 4.3
 #PBS -l nodes=1:ppn=8
 #PBS -l walltime=04:00:00
 cd $PBS_O_WORKDIR
-cfd-test -t $temperature  -p $pressure  -v $volume
+cfd_test -t $temperature  -p $pressure  -v $volume
 </code></pre>
 
 <p>Note that
@@ -233,7 +233,7 @@ cfd-test -t $temperature  -p $pressure  -v $volume
 $ wsub -batch run.pbs -data data.txt
 </code></pre>
 
-<p>Note that the PBS file is the value of the -batch option . The cfd-test program will now be run for all 100 parameter instances — 7 concurrently — until all computations are done. A computation for such a parameter instance is called a work item in Worker parlance.</p>
+<p>Note that the PBS file is the value of the -batch option . The cfd_test program will now be run for all 100 parameter instances — 7 concurrently — until all computations are done. A computation for such a parameter instance is called a work item in Worker parlance.</p>
 <h2 id="job-arrays">Job arrays</h2>
 <p>In olden times when the cluster was young and Moab was not used as a schedular some users developed the habit of using job arrays. The latter is an experimantal torque feature not supported by Moab and hence can no longer be used.</p>
 <p>To support those users who used the feature and since it offers a convenient workflow, worker implements job arrays in its own way.</p>
@@ -244,10 +244,10 @@ $ wsub -batch run.pbs -data data.txt
 cd $PBS_O_WORKDIR
 INPUT_FILE=&quot;input_${PBS_ARRAYID}.dat&quot;
 OUTPUT_FILE=&quot;output_${PBS_ARRAYID}.dat&quot;
-cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
+word_count -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 </code></pre>
 
-<p>As in the previous section, the cfd-test program does not exist. Input for the program is stored in files with names such as <code>input_1.dat</code>, <code>input_2.dat</code>, ..., <code>input_100.dat</code> that the user produced by whatever means, and the corresponding output computed by cfd-test is written to <code>output_1.dat</code>, <code>output_2.dat</code>, ..., <code>output_100.dat</code>. (Here we assume that the non-existent cfd-test program takes options -input and -output.)</p>
+<p>As in the previous section, the word_count program does not exist. Input for the program is stored in files with names such as <code>input_1.dat</code>, <code>input_2.dat</code>, ..., <code>input_100.dat</code> that the user produced by whatever means, and the corresponding output computed by word_count is written to <code>output_1.dat</code>, <code>output_2.dat</code>, ..., <code>output_100.dat</code>. (Here we assume that the non-existent word_count program takes options -input and -output.)</p>
 <p>The job would be submitted using:</p>
 <pre><code>$ qsub -t 1-100 run.pbs
 </code></pre>
@@ -260,7 +260,7 @@ cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 cd $PBS_O_WORKDIR
 INPUT_FILE=&quot;input_${PBS_ARRAYID}.dat&quot;
 OUTPUT_FILE=&quot;output_${PBS_ARRAYID}.dat&quot;
-cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
+word_count -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 </code></pre>
 
 <p>Note that
@@ -272,7 +272,7 @@ cfd-test -input ${INPUT_FILE}  -output ${OUTPUT_FILE}
 $ wsub -t 1-100  -batch run.pbs
 </code></pre>
 
-<p>The cfd-test program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.</p>
+<p>The word_count program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.</p>
               
             </div>
           </div>
