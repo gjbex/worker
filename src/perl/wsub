@@ -503,14 +503,16 @@ sub print_help {
 #   -verbose              : feedback information is written to standard error
 #   -dryrun               : run without actually submitting the job, useful
 #   -quiet                : don't show information
-#   -master               : start an extra master process, i.e.,
-#                           the number of slaves will be nodes*ppn
-#   -threaded             : indicates that work items are multithreaded,
-#                           ensures that CPU sets will have all cores,
+#   -threaded <n>         : indicates that work items are multithreaded,
+#                           running with <n> threads, and ensures that
+#                           CPU sets will have all cores,
 #                           regardless of ppn, hence each work item will
-#                           have <total node cores>/ppn cores for its
-#                           threads; don't use this unless you know
-#                           what you are doing
+#                           have <total node cores>/<n> cores for its
+#                           threads; for avoiding problems with CPU sets,
+#                           choose ppn the same as the number of
+#                           physical cores of the target node;
+#                           don't use this unless you know what you are
+#                           ding
 #   -sleep <microseconds> : time for the master to sleep between
 #                           MPI_Test to avoid spinning, expressed in
 #                           microseconds; don't use this unless you're
