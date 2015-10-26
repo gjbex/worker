@@ -267,6 +267,12 @@ file `run.pbs`:
 $ dos2unix run.pbs
 ```
 
+Requirements
+------------
+
+The software is best installed using the Intel compiler suite, and for
+multithreaded workloads to run efficiently, Intel MPI 5.x.
+
 Changes
 -------
 Changed in version 1.6.3
