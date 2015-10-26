@@ -274,6 +274,7 @@ my $vars = {
     'logfile'        => $log_file,
     'master'         => $master,
     'threaded'       => $threaded,
+    'core_count'     => "$FindBin::Bin/core_count",
     'sleep'          => $sleep,
     'ppn'            => $ppn,
     'basename'       => $job_name,
