@@ -1,4 +1,4 @@
-AC_INIT([worker], [1.6.1], [geertjan.bex@uhasselt.be])
+AC_INIT([worker], [1.6.3], [geertjan.bex@uhasselt.be])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign tar-pax])
 AC_PROG_CC([mpiicc])
 AC_CHECK_HEADERS([stdlib.h])

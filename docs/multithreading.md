@@ -1,16 +1,15 @@
 If a work item uses threading, the execution of a `worker` job is very
 similar to that of a hybrid MPI/OpenMP application, and in compbination
 with CPU sets, similar measures should be taken to ensure efficient
-execution.  `worker` supports this through the `-threaded` flag.
+execution.  `worker` supports this through the `-threaded` option.
 For example, assume a compute node has 20 cores, and a work item runs
-efficiently usinng 4 threads, then the following resource specification
+efficiently using 4 threads, then the following resource specification
 would be appropriate:
 ```
-wsub  -lnodes=4:ppn=5  -threaded  ...
+wsub  -lnodes=4:ppn=20  -threaded 4  ...
 ```
-`worker` ensures that all cores are in the CPU set for the job, but will
-not compute more than 5 work items on a node, so that each work item
-can use 4 cores.
+`worker` ensures that all cores are in the CPU set for the job, and will
+use 4 cores to compute each work item.
 
 In order to allow interoperability with tools such as numactl or other
 thread-pinning software, two variables are made available to job scripts:
