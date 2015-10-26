@@ -48,17 +48,19 @@ n_proc=$(( ${n_proc} + 1 ))
 # only applicable when the threaded swith is on
 [%IF threaded%]
 n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
-node_list=$(cat ${PBS_NODEFILE} | uniq)
-ppn="[%ppn%]"
-for node in ${node_list}; do
-    for i in `seq ${ppn}`; do
-        echo ${node} >> [%default_host%]
-    done
-done
-HOST_FILE="-machinefile [%default_host%]"
-n_proc=$(( ${ppn} * ${n_nodes} ))
+n_cores=`[%core_count%]`
+omp="[%ppn%]"
+ppn=$(( ${n_cores} / ${omp} ))
+ppn_opt="-ppn ${ppn}"
+mpi=$(( ${n_nodes} * ${ppn} ))
+mpi_opt="-np ${mpi}"
+# ensure that mpirun doesn't igonre parameters, which it does when running
+# under torque
+export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
 # ensure correct distribution of processes over sockets
-export I_MPI_PIN_DOMAIN=socket
+export OMP_NUM_THREADS=$omp
+export I_MPI_PIN_DOMAIN=omp:compact
+export KMP_AFFINITY=compact
 [%END%]
 
 # compute log option
@@ -69,9 +71,12 @@ WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
 
 # load appropriate MPI implementation module
 [%IF unload_modules%]module unload [%unload_modules%][%END%]
+module purge
+module use /apps/leuven/thinking/2015a/modules/all
+module use [%module_path%]
 module load [%mpi_module%]
 
 # start the worker
-[%mpirun%] [%mpirun_options%] ${HOST_FILE} \
+[%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} \
     "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
                    ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP}
