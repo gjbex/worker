@@ -196,11 +196,10 @@ For example, assume a compute node has 20 cores, and a work item runs
 efficiently usinng 4 threads, then the following resource specification
 would be appropriate:
 ```
-wsub  -lnodes=4:ppn=5  -threaded  ...
+wsub  -lnodes=4:ppn=20  -threaded 4 ...
 ```
-`worker` ensures that all cores are in the CPU set for the job, but will
-not compute more than 5 work items on a node, so that each work item
-can use 4 cores.
+`worker` ensures that all cores are in the CPU set for the job, and will
+use 4 cores to compute a work item.
 
 In order to allow interoperability with tools such as numactl or other
 thread-pinning software, two variables are made available to job scripts:
@@ -220,8 +219,7 @@ This how-to introduces only Worker's basic features. The wsub command has some u
 #                [-epilog <epilog-file>]      \\
 #                [-log <log-file>]            \\
 #                [-mpiverbose]                \\
-#                [-master]                    \\
-#                [-threaded]                  \\
+#                [-threaded <n>]              \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
 #                [-t <array-req>]             \\
@@ -242,9 +240,7 @@ This how-to introduces only Worker's basic features. The wsub command has some u
 #   -dryrun               : run without actually submitting the job, useful
 #   -quiet                : don't show information
 #   -help                 : print this help message
-#   -master               : start an extra master process, i.e.,
-#                           the number of slaves will be nodes*ppn
-#   -threaded             : indicates that work items are multithreaded,
+#   -threaded <n>         : indicates that work items are multithreaded,
 #                           ensures that CPU sets will have all cores,
 #                           regardless of ppn, hence each work item will
 #                           have <total node cores>/ppn cores for its
@@ -273,6 +269,12 @@ $ dos2unix run.pbs
 
 Changes
 -------
+Changed in version 1.6.3
+  * fixed bug that prevented proper execution of multi-threaded work items
+
+Changed in version 1.6.2
+  * fixed reference in documentation so that a page was missing
+
 Changed in version 1.6.1
   * bug fix for absolute paths of prologue/epilogue files
 

@@ -466,8 +466,7 @@ sub print_help {
 #                  [-disable_epilog | -epilog <epilog-file>]   \\
 #                  [-retry]                                    \\
 #                  [-disable_options]                          \\
-#                  [-master]                                   \\
-#                  [-threaded]                                 \\
+#                  [-threaded <n>]                                 \\
 #                  [-sleep <microseconds>]                     \\
 #                  [-mpiverbose]                               \\
 #                  [-dryrun] [-verbose]                        \\
