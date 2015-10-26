@@ -121,7 +121,7 @@ GetOptions(
 	   "mpiverbose"      => \$mpi_verbose,
 	   "verbose"         => \$verbose,
        "master"          => \$master,
-       "threaded"        => \$threaded,
+       "threaded=i"      => \$threaded,
        "sleep=i"         => \$sleep,
 	   "dryrun"          => \$dryrun,
 	   "quiet"           => \$quiet,
@@ -242,25 +242,13 @@ msg("PBS file parsed");
 # when work items are threaded
 my $ppn = $cores_per_node;
 if ($threaded) {
-    my $resources = undef;
-    my $resource_str = get_cmd_line_resources(@ARGV);
-    if (!defined($resource_str)) {
-        $resource_str = $pbs->get_resources();
-    }
-    $resources = $pbs_parser->parse_pbs_resources($resource_str);
-    if (exists($resources->{'nodes'}) &&
-            exists($resources->{'nodes'}->{'ppn'})) {
-        $ppn = $resources->{'nodes'}->{'ppn'};
-    }
+    $ppn = $threaded
 }
 msg("ppn set to $ppn");
 
 # if the work items are threaded, replace a ppn by the hardware default,
 # otherise leave unmodified
 my $pbs_directives = $pbs->get_pbs();
-if ($threaded) {
-    $pbs_directives =~ s/\bppn\s*=\s*\d+/ppn=$cores_per_node/g;
-}
 
 # determine basename of prolog/epilog
 my $prolog_basename = undef;
@@ -300,6 +288,7 @@ my $vars = {
     'pbs_file'       => $pbs_file,
     'run_ext'        => $run_ext,
     'mpi_module'     => $conf{mpi_module},
+    'module_path'    => $conf{module_path},
     'mpirun'         => $conf{mpirun},
     'mpirun_options' => $conf{mpirun_options},
     };
@@ -499,13 +488,16 @@ sub print_help {
 #                           items are executed
 #   -retry                : failed tasks are executed again, as well as those
 #                           that were not finished in the job to be resumed
-#   -master               : start an extra master process, i.e.,
-#                           the number of slaves will be nodes*ppn
-#   -threaded             : indicates that work items are multithreaded,
-#                           ensures that CPU sets will have all cores,
+#   -threaded <n>         : indicates that work items are multithreaded,
+#                           running with <n> threads, and ensures that
+#                           CPU sets will have all cores,
 #                           regardless of ppn, hence each work item will
-#                           have <total node cores>/ppn cores for its
-#                           threads
+#                           have <total node cores>/<n> cores for its
+#                           threads; for avoiding problems with CPU sets,
+#                           choose ppn the same as the number of
+#                           physical cores of the target node;
+#                           don't use this unless you know what you are
+#                           ding
 #   -sleep <microseconds> : time for the master to sleep between
 #                           MPI_Test to avoid spinning, expressed in
 #                           microseconds; don't use this unless you're
