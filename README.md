@@ -273,8 +273,13 @@ Requirements
 The software is best installed using the Intel compiler suite, and for
 multithreaded workloads to run efficiently, Intel MPI 5.x.
 
+
 Changes
 -------
+Changes in version 1.6.4
+  * improved "packaging" for distribution
+  * bug fix in wresume
+
 Changed in version 1.6.3
   * fixed bug that prevented proper execution of multi-threaded work items
 
