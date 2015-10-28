@@ -1,6 +1,13 @@
 [%shebang%]
 [%pbs%]
 
+# load appropriate MPI implementation module
+[%IF unload_modules%]module unload [%unload_modules%][%END%]
+module purge
+module use /apps/leuven/thinking/2015a/modules/all
+module use [%module_path%]
+module load [%mpi_module%]
+
 # set worker application and options
 WORKER_APPL="[%worker%]"
 
@@ -47,6 +54,7 @@ n_proc=$(( ${n_proc} + 1 ))
 
 # only applicable when the threaded swith is on
 [%IF threaded%]
+module load [%core_count_mod%]
 n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
 n_cores=`[%core_count%]`
 omp="[%ppn%]"
@@ -68,13 +76,6 @@ WORKER_LOG_FILE="-l [%logfile%]"
 
 # compute verbose option
 WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
-
-# load appropriate MPI implementation module
-[%IF unload_modules%]module unload [%unload_modules%][%END%]
-module purge
-module use /apps/leuven/thinking/2015a/modules/all
-module use [%module_path%]
-module load [%mpi_module%]
 
 # start the worker
 [%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} \
