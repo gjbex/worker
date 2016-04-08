@@ -1,0 +1,14 @@
+# Installation requirements
+
+To build the worker application, a C89 complient compiler is required,
+as well as the Intel MPI library.
+
+# Runtime requirements
+
+To run the worker commands, Perl 5.10+ is required, as well as the
+following non-standard modules:
+* `Config::General`
+* `Getopt::Long`
+* `IO::Scalar`
+* `Set::Scalar`
+* `Template`
