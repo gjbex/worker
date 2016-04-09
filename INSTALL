@@ -12,3 +12,37 @@ following non-standard modules:
 * `IO::Scalar`
 * `Set::Scalar`
 * `Template`
+
+Also, the runtime libraries of th compiler used during installation, and
+the Intel MPI library should be available.
+
+Worker is designed to be used with a resource manager or a scheduler.  It
+currently supports PBS torque, although it could potentially support others.
+
+# Installing
+
+Obtain the distribution, either by cloning the Github repository, or by
+downloading a release.  In the latter case:
+```
+$ tar xaf <tar_gz>
+$ cd worker-<version>
+```
+Followed by the usual mantra:
+```
+./configure
+make
+make install
+```
+The install path can be changed by `configure`'s `--prefix` option, e.g.,
+```
+./configure  --prefix=/opt/software/worker-<version>
+```
+
+Important: do not forget to tune `<install_path>/conf/worker.conf` to
+local requirements.  Items that require attention:
+* qsub
+* email
+* unload_modules
+* mpi_module
+* mpi_run
+* mpi_run_options
