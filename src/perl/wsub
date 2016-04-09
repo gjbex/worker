@@ -344,7 +344,7 @@ if (defined $job_name) {
     unshift(@ARGV, '-N', $job_name);
 }
 # -C
-if (defined $directive_prefix) {
+if (defined $directive_prefix && $directive_prefix ne $Pbs::Parser::DEFAULT_PREFIX) {
     unshift(@ARGV, '-C', $directive_prefix);
 }
 # -t: do not put this back, this is for PBS array requests, and is
