@@ -8,7 +8,7 @@ use warnings;
 
 use Pbs::Description;
 
-our $DEFAULT_PREFIX => '#PBS';
+our $DEFAULT_PREFIX = '#PBS';
 
 # ----------------------------------------------------------------------------
 # constructor, takes a PBS file as an argument, and optionally, a PBS
