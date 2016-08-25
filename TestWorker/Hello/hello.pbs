@@ -1,0 +1,13 @@
+#!/bin/bash -l
+#PBS -N test_worker
+#PBS -A lpt1_sysadmin
+#PBS -l nodes=2:ppn=28
+#PBS -l walltime=00:05:00
+
+if [ "${sleep}x" == "x" ]
+then
+    sleep=100
+fi
+sleep ${sleep}
+echo -n "Hi from ${WORKER_RANK} on $(hostname) "
+echo "with array ID ${PBS_ARRAYID} and value ${value}, ${value2}"
