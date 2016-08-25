@@ -39,15 +39,15 @@ sub parse {
     my $fh = IO::File->new($run_file, 'r') or
 	die("### error: can't open run file '$run_file': $!");
     while (my $line = <$fh>) {
-	next if $line =~ /^\s*#/ || $line =~ /^\s*$/;
+        next if $line =~ /^\s*#/ || $line =~ /^\s*$/;
 	# remove submission command at start of line
-	$line =~ s/^\s*(\S+)\s+//;
-	$self->{qsub} = $1;
+        $line =~ s/^\s*(\S+)\s+//;
+        $self->{qsub} = $1;
 	# remove PBS script at end of line
-	$line =~ s/\s+(\S+)\s*$//;
-	$self->{pbs} = $1;
-	@options = shellwords($line);
-	last;
+        $line =~ s/\s*(\S+)\s*$//;
+        $self->{pbs} = $1;
+        @options = shellwords($line);
+        last;
     }
     $fh->close();
     $self->{options} = hash_options(@options);
