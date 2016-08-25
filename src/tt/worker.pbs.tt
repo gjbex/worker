@@ -4,7 +4,6 @@
 # load appropriate MPI implementation module
 [%IF unload_modules%]module unload [%unload_modules%][%END%]
 module purge
-module use /apps/leuven/thinking/2015a/modules/all
 module use [%module_path%]
 module load [%mpi_module%]
 
