@@ -1,0 +1,19 @@
+site_name: worker documentation
+site_description: worker is intended to easily submit and manage embarrasignly parallel computations for, e.g., parameter exploration
+site_author: Geert Jan Bex
+pages:
+- Introduction and motivation: 'index.md'
+- Step by step: 'steps.md'
+- Prologue and epilogue: 'mapreduce.md'
+- Monitoring worker jobs: 'monitoring.md'
+- Limiting execution time: 'time_limits.md'
+- Resuming a worker job: 'resume.md'
+- Post processing: 'postprocessing.md'
+- Multithreaded work items: 'multithreading.md'
+- Worker commands: 'commands.md'
+- Further information: 'further_info.md'
+- Trouble shooring: 'trouble.md'
+- Changes: 'changes.md'
+- Contact information: 'contact.md'
+site_dir: html_docs/worker
+theme: readthedocs
