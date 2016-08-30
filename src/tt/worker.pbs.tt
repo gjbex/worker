@@ -41,16 +41,6 @@ rm -rf [%dir%]
 # or threaded switch is active
 n_proc=$(cat ${PBS_NODEFILE} | wc -l)
 
-# only applicable when the master switch is on
-# create host file to use for this job and compute number of cores
-[%IF master%]
-mom=`head -1 $PBS_NODEFILE`
-echo $mom > [%default_host%]
-cat $PBS_NODEFILE >> [%default_host%]
-HOST_FILE="-machinefile [%default_host%]"
-n_proc=$(( ${n_proc} + 1 ))
-[%END%]
-
 # only applicable when the threaded swith is on
 [%IF threaded%]
 module load [%core_count_mod%]
@@ -72,6 +62,21 @@ export I_MPI_PIN_DOMAIN=omp:compact
 export KMP_AFFINITY=compact
 [%END%]
 
+# only applicable when the master switch is on
+# create host file to use for this job and compute number of cores
+[%IF master%]
+mom=`head -1 $PBS_NODEFILE`
+echo $mom > [%default_host%]
+cat $PBS_NODEFILE >> [%default_host%]
+if [ "${mpi}x" == "x" ]
+then
+    mpi_opt="-np $(( ${n_proc} + 1 ))"
+else
+    mpi_opt="-np $(( ${mpi} + 1 ))"
+fi
+HOST_FILE="-machinefile [%default_host%]"
+[%END%]
+
 # compute log option
 WORKER_LOG_FILE="-l [%logfile%]"
 
@@ -79,7 +84,7 @@ WORKER_LOG_FILE="-l [%logfile%]"
 WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
 
 # start the worker
-[%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} \
+[%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} ${HOST_FILE} \
     "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
                    ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP} \
                    ${WORKER_THREADS}
