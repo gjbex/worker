@@ -3,6 +3,6 @@
 
 #include "worker.h"
 
-int slave(int verbose);
+int slave(unsigned int numThreads, int verbose);
 
 #endif
