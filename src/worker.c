@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
         if (exitStatus != EXIT_SUCCESS)
             MPI_Abort(MPI_COMM_WORLD, 2);
     } else {
-        exitStatus = slave(verbose);
+        exitStatus = slave(numThreads, verbose);
     }
 
     /* clean up */
