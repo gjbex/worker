@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     char *epilogFile = NULL;
     char *logFile = NULL;
     char optChar = '\0';
-    unsigned int sleepTime = DEFAULT_USLEEP;
+    unsigned int sleepTime = DEFAULT_USLEEP, numThreads = 1;
     while ((optChar = getopt(argc, argv, "p:b:e:l:s:vh")) != -1) {
         switch (optChar) {
             case 'p':
@@ -57,6 +57,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 's':
                 sleepTime = (unsigned int) atoi(optarg);
+                break;
+            case 't':
+                numThreads = (unsigned int) atoi(optarg);
                 break;
             case 'h':
                 printHelp();
