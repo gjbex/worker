@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     char *logFile = NULL;
     char optChar = '\0';
     unsigned int sleepTime = DEFAULT_USLEEP, numThreads = 1;
-    while ((optChar = getopt(argc, argv, "p:b:e:l:s:vh")) != -1) {
+    while ((optChar = getopt(argc, argv, "p:b:e:l:s:t:vh")) != -1) {
         switch (optChar) {
             case 'p':
                 prologFile = optarg;
@@ -127,16 +127,17 @@ void printHelp() {
     fprintf(stderr,
         "### usage: worker [-p <prolog>] -b <batch> [-e <epilog>] \\\n"
         "                  [-l <log>] [-v] [-h]\n"
-        "# -p <prolog> : prolog file, executed by master before slaves\n"
-        "#               are started\n"
-        "# -b <batch>  : batch file containing the work items to do\n"
-        "#               by the slaves\n"
-        "# -e <epilog> : epilog file, executed by master after slaves\n"
-        "#               are stopped\n"
-        "# -l <log>    : log file, can be monitored for progress,\n"
-        "#               if not specified, no logging is done\n"
-        "# -s <sleep>  : sleep time for master in MPI_Test loop\n"
-        "# -v          : give verbose feedback\n"
-        "# -h          : print this help message\n"
+        "# -p <prolog>  : prolog file, executed by master before slaves\n"
+        "#                are started\n"
+        "# -b <batch>   : batch file containing the work items to do\n"
+        "#                by the slaves\n"
+        "# -e <epilog>  : epilog file, executed by master after slaves\n"
+        "#                are stopped\n"
+        "# -l <log>     : log file, can be monitored for progress,\n"
+        "#                if not specified, no logging is done\n"
+        "# -s <sleep>   : sleep time for master in MPI_Test loop\n"
+        "  -t <threads> : number of threads to use for the work items'\n"
+        "# -v           : give verbose feedback\n"
+        "# -h           : print this help message\n"
     );
 }
