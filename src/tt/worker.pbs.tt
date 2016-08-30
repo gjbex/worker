@@ -61,6 +61,8 @@ ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
 mpi=$(( ${n_nodes} * ${ppn} ))
 mpi_opt="-np ${mpi}"
+# set thread option for worker
+WORKER_THREADS="-t $omp"
 # ensure that mpirun doesn't igonre parameters, which it does when running
 # under torque
 export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
@@ -79,4 +81,5 @@ WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
 # start the worker
 [%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} \
     "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
-                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP}
+                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP} \
+                   ${WORKER_THREADS}

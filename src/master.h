@@ -4,6 +4,6 @@
 #include "worker.h"
 
 int master(char *prologFile, char *batchFile, char *epilogFile,
-    	   char *logFile, const unsigned int sleepTime, int verbose);
+    	   char *logFile, unsigned int sleepTime, int verbose);
 
 #endif

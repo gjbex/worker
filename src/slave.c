@@ -6,7 +6,7 @@
 #include "slave.h"
 
 /* slave process logic */
-int slave(int verbose) {
+int slave(unsigned int numThreads, int verbose) {
     /* determine rank */
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -44,6 +44,7 @@ int slave(int verbose) {
             }
             fprintf(cp, "WORKER_RANK=%d\n", rank);
             fprintf(cp, "WORKER_SIZE=%d\n", size);
+            fprintf(cp, "WORKER_NUM_THREADS=%d\n", numThreads);
             fprintf(cp, "%s", batch);
             int exitStatus = pclose(cp);
             free(batch);
