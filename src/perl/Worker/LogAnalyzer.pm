@@ -139,8 +139,8 @@ sub worker_stats {
             FROM (SELECT s.worker_id AS worker_id,
                          e.end_time - s.start_time AS time
                       FROM work_items AS s, results AS e
-                      WHERE s.work_item = e.work_item
-                      GROUP BY s.worker_id) AS t
+                      WHERE s.work_item = e.work_item) AS t
+            GROUP BY t.worker_id;
     );
     return $self->{dbh}->selectall_arrayref($query);
 }
