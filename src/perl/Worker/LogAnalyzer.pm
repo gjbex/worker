@@ -71,7 +71,7 @@ sub init {
 sub reset {
     my $self = shift(@_);
     my $drop_work_items = qq(
-        DROP TABLE work_item;
+        DROP TABLE work_items;
     );
     $self->{dbh}->do($drop_work_items);
     my $drop_results = qq(
