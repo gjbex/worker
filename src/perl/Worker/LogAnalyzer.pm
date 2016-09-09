@@ -117,7 +117,7 @@ sub work_item_stats {
 sub worker_times {
     my $self = shift(@_);
     my $query = qq(
-        SELECT s.worker_id, sum(e.end_time - s.start_time), count(*)
+        SELECT s.worker_id, SUM(e.end_time - s.start_time), COUNT(*)
             FROM work_items AS s, results AS e
             WHERE s.work_item = e.work_item
             GROUP BY s.worker_id
