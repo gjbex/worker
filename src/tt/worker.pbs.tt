@@ -53,9 +53,8 @@ n_proc=$(( ${n_proc} + 1 ))
 
 # only applicable when the threaded swith is on
 [%IF threaded%]
-module load [%core_count_mod%]
 n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
-n_cores=`[%core_count%]`
+n_cores=`nprocs`
 omp="[%ppn%]"
 ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
