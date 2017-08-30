@@ -1,6 +1,8 @@
 worker
 ======
 
+[![DOI](https://www.zenodo.org/badge/DOI/10.5281/zenodo.61159.svg)](https://doi.org/10.5281/zenodo.61159)
+
 What is it?
 -----------
 The Worker framework has been developed to meet specific use cases: many small jobs determined by parameter variations; the scheduler's task is easier when it does not have to deal with too many jobs.
