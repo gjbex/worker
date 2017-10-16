@@ -269,6 +269,12 @@ file `run.pbs`:
 $ dos2unix run.pbs
 ```
 
+Examples
+--------
+Some examples are provided in the [`examples`](examples) directory,
+material provided by Mag Selwa (mag.selwa@kuleuven.be).
+
+
 Requirements
 ------------
 
