@@ -49,6 +49,7 @@ echo $mom > [%default_host%]
 cat $PBS_NODEFILE >> [%default_host%]
 HOST_FILE="-machinefile [%default_host%]"
 n_proc=$(( ${n_proc} + 1 ))
+mpi_opt="${HOST_FILE} -np ${n_proc}"
 [%END%]
 
 # only applicable when the threaded swith is on
