@@ -284,6 +284,9 @@ multithreaded workloads to run efficiently, Intel MPI 5.x.
 
 Changes
 -------
+Changes in version 1.6.8
+  * bugfix in PBS template that impacted `-master` flag
+
 Changes in version 1.6.4
   * improved "packaging" for distribution
   * bug fix in wresume
