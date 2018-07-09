@@ -1,212 +1,27 @@
-#!/usr/bin/env perl
-
-use strict;
-use warnings;
-use Data::Dumper;
-use Config::General;
-use FindBin;
-use Getopt::Long;
-use IO::File;
-use Set::Scalar;
-use Template;
-
-sub BEGIN {
-    if (exists $ENV{WORKER_DIR} && defined $ENV{WORKER_DIR} &&
-            length($ENV{WORKER_DIR}) > 0) {
-        unshift(@INC, "$ENV{WORKER_DIR}/lib/perl");
-    } else {
-        unshift(@INC, "$FindBin::Bin/../lib/perl");
-    }
-}
-
-use Worker::CsvProvider;
-use Worker::DataProvider;
-use Worker::Utils qw( parse_hdr check_file msg quote_options );
-
-# directory containing the Worker software
-my $worker_dir = undef;
-if (exists $ENV{WORKER_DIR} && defined $ENV{WORKER_DIR} &&
-        length($ENV{WORKER_DIR}) > 0) {
-    $worker_dir = "$ENV{WORKER_DIR}";
-} else {
-    $worker_dir = "$FindBin::Bin/..";
-}
-$worker_dir .= '/' unless length($worker_dir) == 0 || $worker_dir =~ m|/$|;
-check_file($worker_dir, 'worker directory', 1, 1);
-
-my $config_file = "${worker_dir}/conf/worker.conf";
-check_file($config_file, 'configuration file', 1);
-msg("reading config file '$config_file'...");
-my $config = Config::General->new($config_file);
-my %conf = $config->getall();
-msg("config file read");
-msg(Dumper(\%conf) . "\n");
-
-# configure command line parsing
-Getopt::Long::Configure("no_ignore_case", "pass_through",
-			"no_auto_abbrev");
-
-# command line variables
-my @data_files  = ();
-my $pattern     = undef;
-my $output_file = undef;
-my $reductor    = undef;
-my $rm_orig     = undef;
-my $verbose     = undef;
-my $quiet       = undef;
-
-GetOptions(
-    "data=s"       => \@data_files,
-    "pattern=s"    => \$pattern,
-    "output=s"     => \$output_file,
-    "reductor=s"   => \$reductor,
-    "rm_orig"      => \$rm_orig,
-    "verbose"      => \$verbose,
-    "quiet"        => \$quiet,
-    "help"         => \&show_help,
-);
-
-# set verbosity for Worker::Utils
-$Worker::Utils::verbose = $verbose;
-
-msg("validating options...");
-unless (defined $pattern) {
-    print STDERR "### error: no pattern given\n";
-    exit 2;
-}
-unless (defined $reductor) {
-    print STDERR "### error: no reductor given\n";
-    exit 3;
-}
-msg("pattern: '$pattern'");
-unless (scalar(@data_files) > 0) {
-    print STDERR "### error: no data file is provided\n";
-    print_help();
-    exit 4;
-}
-# check that files, if supplied, can be read
-msg("checking file existances...");
-if (scalar(@data_files) > 0) {
-    @data_files = split(/,/, join(',', @data_files));
-    check_file($_, "data file") foreach @data_files;
-}
-# check reductor
-msg("checking reductor...");
-unless (-x $reductor) {
-    print STDERR "### error: reductor is not executable\n";
-    exit 5;
-}
-
-# create data providers
-msg("creating providers...");
-my @providers = ();
-# create the appropriate provider
-foreach my $data_file (@data_files) {
-    eval {
-        push(@providers, Worker::CsvProvider->new($data_file));
-    };
-    if ($@) {
-        print STDERR "### error parsing '$data_file': $@";
-        exit 6;
-    }
-    msg("data file provider '$data_file' created");
-}
-my $provider = Worker::DataProvider->new(@providers);
-msg("all providers created");
-
-# initialize Template engine
-msg("initializing template engine...");
-my $tt_config = {ABSOLUTE => 1};
-my $engine = Template->new($tt_config);
-msg("template engine initialized");
-
-# get all variable names
-my @variables = $provider->get_vars();
-
-my $job_size = 0;
-
-my $file_set = Set::Scalar->new();
-my @files_found = ();
-while ($provider->has_next()) {
-    $job_size++;
-    my $vars = $provider->get_next();
-    my $file_name = '';
-    unless ($engine->process(\$pattern, $vars, \$file_name)) {
-        print STDERR "### error: problem with template,\n";
-        print STDERR "           ", $engine->error(), "\n";
-        exit 7;
-    }
-    msg("file '$file_name'");
-    if (!$file_set->contains($file_name)) {
-        $file_set->insert($file_name);
-        if (-e $file_name && -r $file_name) {
-            push(@files_found, $file_name);
-        } else {
-            print STDERR "### warning: can't open file '$file_name'\n"
-                unless $quiet;
-        }
-    }
-}
-
-for my $file_name (@files_found) {
-    msg("processing file '$file_name'...");
-    system($reductor, $output_file, $file_name);    
-    if ($? == -1) {
-        print STDERR "### error: failed to execute: $!\n";
-    } elsif ($? & 127) {
-        printf STDERR "### error: reductor died with %d, %s coredump\n",
-                      ($? & 127),  ($? & 128) ? 'with' : 'without';
-    } elsif ($? != 0) {
-        printf STDERR "### error: reductor exited with value %d\n", $? >> 8;
-    }
-    msg("file '$file_name' processed");
-    if ($rm_orig) {
-        unless (unlink($file_name) == 0) {
-            print "### warming: file '$file_name' could not be deleted\n"
-                unless $quiet;
-        }
-    }
-}
-
-exit 0;
-
-# ------------------------------------------------------------------
-# shows help and exits
-# ----------------------------------------------------------------------------
-sub show_help {
-    print_help();
-    exit 0;
-}
-
-# ----------------------------------------------------------------------------
-# print the script's help stuff
-# ----------------------------------------------------------------------------
-sub print_help {
-    print STDERR <<EOI
-### usage: wreduce  -pattern <pat> -data <files> -output <file>  \\
-#                   -reduce <reductor> [-rm_orig] \\
-#                   [-verbose] [-quiet] [-help]
+#!/bin/bash -l
 #
-#   -pattern <pat>        : pattern for the files to concatenate, based on
-#                           the values in the data files provided; suppose
-#                           that a data file has columns 'alpha' and 'beta',
-#                           used to generate files with names, e.g.,
-#                           'result-15-13.txt', where 15 is a value of 'alpha'
-#                           and 12 is a value of 'beta', than the relevant
-#                           pattern would be 'result-[%alpha%]-[%beta%].txt'
-#   -data <data-files>    : comma-separated list of data files (default CSV
-#                           files) used to provide the data for the work
-#                           items, note that these must be the same file(s)
-#                           used for the wsub command
-#   -output <file>        : name of the output file that will contain the
-#                           concatenated data
-#   -reductor <reductor>  : script implementing the reduction of a single
-#                           output file to ghe final output
-#   -rm_orig              : remove the files, ones they have been concatenated
-#                           to the output file; use with caution since this
-#                           can not be undone
-#   -verbose              : feedback information is written to standard error
-#   -quiet                : don't show warnings
-#   -help                 : print this help message
-EOI
-}
+# Copyright (C) 2013 Geert Jan Bex <geertjan.bex@uhasselt.be>
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# determine true location of Bash script
+exec=$(readlink -f ${0})
+
+DIR=$( cd -P "$( dirname "${exec}" )" && pwd )
+
+# load the Python interpeter from the config file
+source "${DIR}/../conf/worker_perl.sh"
+
+${PERL} ${DIR}/../wreduce.pl "$@"
