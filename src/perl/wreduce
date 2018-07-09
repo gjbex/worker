@@ -24,4 +24,4 @@ DIR=$( cd -P "$( dirname "${exec}" )" && pwd )
 # load the Python interpeter from the config file
 source "${DIR}/../conf/worker_perl.sh"
 
-${PERL} ${DIR}/../wreduce.pl "$@"
+${PERL} ${DIR}/../lib/wreduce.pl "$@"
