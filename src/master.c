@@ -16,7 +16,7 @@ void logEndJob(FILE *logFp, const int rank, const int jobId,
 
 /* master process logic */
 int master(char *prologFile, char *batchFile, char *epilogFile,
-           char *logFile, const unsigned int sleepTime, int verbose) {
+           char *logFile, unsigned int sleepTime, int verbose) {
     if (verbose)
         fprintf(stderr, "### msg: starting master\n");
     /* open the log file, warn on failure */

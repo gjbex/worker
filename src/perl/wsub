@@ -305,7 +305,8 @@ my $vars = {
     'threaded'       => $threaded,
     'sleep'          => $sleep,
     'ppn'            => $ppn,
-    'core_count'     => "$FindBin::Bin/core_count",
+    'core_count_mod' => $conf{core_counter_module},
+    'core_count'     => "core-counter",
     'basename'       => $batch_tmpl_file,
     'default_log'    => $default_log,
     'default_pro'    => $default_pro,
@@ -343,7 +344,7 @@ if (defined $job_name) {
     unshift(@ARGV, '-N', $job_name);
 }
 # -C
-if (defined $directive_prefix) {
+if (defined $directive_prefix && $directive_prefix ne $Pbs::Parser::DEFAULT_PREFIX) {
     unshift(@ARGV, '-C', $directive_prefix);
 }
 # -t: do not put this back, this is for PBS array requests, and is

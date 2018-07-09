@@ -1,0 +1,9 @@
+#!/bin/bash -l
+#PBS -l walltime=00:05:00
+#PBS -l nodes=2:ppn=5
+
+cd $PBS_O_WORKDIR
+base_core=$(( ${WORKER_RANK} % 5 ))
+cores="$(( 4*${base_core} ))-$(( 4*${base_core} + 3))"
+echo "core argument: \"${cores}\""
+numactl -C "${cores}" nproc

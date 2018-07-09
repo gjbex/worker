@@ -1,6 +1,12 @@
 [%shebang%]
 [%pbs%]
 
+# load appropriate MPI implementation module
+[%IF unload_modules%]module unload [%unload_modules%][%END%]
+module purge
+module use [%module_path%]
+module load [%mpi_module%]
+
 # set worker application and options
 WORKER_APPL="[%worker%]"
 
@@ -43,10 +49,12 @@ echo $mom > [%default_host%]
 cat $PBS_NODEFILE >> [%default_host%]
 HOST_FILE="-machinefile [%default_host%]"
 n_proc=$(( ${n_proc} + 1 ))
+mpi_opt="${HOST_FILE} -np ${n_proc}"
 [%END%]
 
 # only applicable when the threaded swith is on
 [%IF threaded%]
+module load [%core_count_mod%]
 n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
 n_cores=`[%core_count%]`
 omp="[%ppn%]"
@@ -54,6 +62,8 @@ ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
 mpi=$(( ${n_nodes} * ${ppn} ))
 mpi_opt="-np ${mpi}"
+# set thread option for worker
+WORKER_THREADS="-t $omp"
 # ensure that mpirun doesn't igonre parameters, which it does when running
 # under torque
 export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
@@ -69,14 +79,8 @@ WORKER_LOG_FILE="-l [%logfile%]"
 # compute verbose option
 WORKER_VERBOSE="[%IF verbose%]-v[%END%]"
 
-# load appropriate MPI implementation module
-[%IF unload_modules%]module unload [%unload_modules%][%END%]
-module purge
-module use /apps/leuven/thinking/2015a/modules/all
-module use [%module_path%]
-module load [%mpi_module%]
-
 # start the worker
 [%mpirun%] [%mpirun_options%] ${mpi_opt} ${ppn_opt} \
     "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
-                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP}
+                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP} \
+                   ${WORKER_THREADS}

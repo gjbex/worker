@@ -71,7 +71,7 @@ sub init {
 sub reset {
     my $self = shift(@_);
     my $drop_work_items = qq(
-        DROP TABLE work_item;
+        DROP TABLE work_items;
     );
     $self->{dbh}->do($drop_work_items);
     my $drop_results = qq(
@@ -117,7 +117,7 @@ sub work_item_stats {
 sub worker_times {
     my $self = shift(@_);
     my $query = qq(
-        SELECT s.worker_id, sum(e.end_time - s.start_time), count(*)
+        SELECT s.worker_id, SUM(e.end_time - s.start_time), COUNT(*)
             FROM work_items AS s, results AS e
             WHERE s.work_item = e.work_item
             GROUP BY s.worker_id
@@ -139,8 +139,8 @@ sub worker_stats {
             FROM (SELECT s.worker_id AS worker_id,
                          e.end_time - s.start_time AS time
                       FROM work_items AS s, results AS e
-                      WHERE s.work_item = e.work_item
-                      GROUP BY s.worker_id) AS t
+                      WHERE s.work_item = e.work_item) AS t
+            GROUP BY t.worker_id;
     );
     return $self->{dbh}->selectall_arrayref($query);
 }

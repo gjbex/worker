@@ -1,13 +1,15 @@
 worker
 ======
 
+[![DOI](https://www.zenodo.org/badge/DOI/10.5281/zenodo.61159.svg)](https://doi.org/10.5281/zenodo.61159)
+
 What is it?
 -----------
 The Worker framework has been developed to meet specific use cases: many small jobs determined by parameter variations; the scheduler's task is easier when it does not have to deal with too many jobs.
 
 Such use cases often have a common root: the user wants to run a program with a large number of parameter settings, and the program does not allow for aggregation, i.e., it has to be run once for each instance of the parameter values. However, Worker's scope is wider: it can be used for any scenario that can be reduced to a MapReduce approach.
 
-This how-to shows you how to use the Worker framework.
+This how-to shows you how to use the Worker framework.  However, for full documentation, please check: http://worker.readthedocs.org/en/latest/
 
 Prerequisites
 -------------
@@ -267,14 +269,28 @@ file `run.pbs`:
 $ dos2unix run.pbs
 ```
 
+Examples
+--------
+Some examples are provided in the [`examples`](examples) directory,
+material provided by Mag Selwa (mag.selwa@kuleuven.be).
+
+
 Requirements
 ------------
 
 The software is best installed using the Intel compiler suite, and for
 multithreaded workloads to run efficiently, Intel MPI 5.x.
 
+
 Changes
 -------
+Changes in version 1.6.8
+  * bugfix in PBS template that impacted `-master` flag
+
+Changes in version 1.6.4
+  * improved "packaging" for distribution
+  * bug fix in wresume
+
 Changed in version 1.6.3
   * fixed bug that prevented proper execution of multi-threaded work items
 

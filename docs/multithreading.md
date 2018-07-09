@@ -18,3 +18,7 @@ in the MPI communicator and the latter's size.  This allows to compute
 the placements of the processes started in work items with respect to the
 CPU set of the node they are running on.  This can be useful to control
 the number of threads used by individual work items.
+
+More conveniently, for use cases where thread placement is not an issue,
+the environment variable `WORKER_NUM_THREADS` provides the number of
+threads per work item, i.e., 4 in the example above.

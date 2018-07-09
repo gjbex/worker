@@ -8,13 +8,15 @@ use warnings;
 
 use Pbs::Description;
 
+our $DEFAULT_PREFIX = '#PBS';
+
 # ----------------------------------------------------------------------------
 # constructor, takes a PBS file as an argument, and optionally, a PBS
 # directive prefix (defaults to '#PBS'
 # ----------------------------------------------------------------------------
 sub new {
     my $pkg = shift(@_);
-    my $self = bless {prefix  => '#PBS'}, $pkg;
+    my $self = bless {prefix  => $DEFAULT_PREFIX}, $pkg;
     return $self;
 }
 

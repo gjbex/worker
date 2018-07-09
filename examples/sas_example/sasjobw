@@ -1,0 +1,27 @@
+
+/* get values of environment variables from SAS command line */
+/* better use sysparm */
+/*ods _all_ close;*/
+
+%let student = %sysget(student);
+%let scm = %sysget(scm);
+%let scb = %sysget(scb);
+%let scc = %sysget(scc);
+
+proc printto log="./log_&student..log" print="./output_&student..lst";
+run;
+
+%put student &student;
+%put math &scm;
+%put biol &scb;
+%put chem &scc;
+libname _all_ list;
+data assignments;
+   total= &scm + &scb + &scc;
+;
+name="&student";
+run;
+
+proc print data=assignments;
+   title 'Assignment Results';
+run;
