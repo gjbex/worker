@@ -1,22 +1,18 @@
-worker
-======
+# worker
 
 [![DOI](https://www.zenodo.org/badge/DOI/10.5281/zenodo.61159.svg)](https://doi.org/10.5281/zenodo.61159)
 
-What is it?
------------
+## What is it?
 The Worker framework has been developed to meet specific use cases: many small jobs determined by parameter variations; the scheduler's task is easier when it does not have to deal with too many jobs.
 
 Such use cases often have a common root: the user wants to run a program with a large number of parameter settings, and the program does not allow for aggregation, i.e., it has to be run once for each instance of the parameter values. However, Worker's scope is wider: it can be used for any scenario that can be reduced to a MapReduce approach.
 
 This how-to shows you how to use the Worker framework.  However, for full documentation, please check: http://worker.readthedocs.org/en/latest/
 
-Prerequisites
--------------
+## Prerequisites
 A (sequential) job you have to run many times for various parameter values. We will use a non-existent program cfd_test by way of running example.
 
-Step by step
-------------
+## Step by step
 We will consider the following use cases already mentioned above:
 
 parameter variations, i.e., many small jobs determined by a specific parameter set;
@@ -71,8 +67,7 @@ $ wsub -batch run.pbs -data data.txt
 ```
 Note that the PBS file is the value of the -batch option . The cfd_test program will now be run for all 100 parameter instances — 7 concurrently — until all computations are done. A computation for such a parameter instance is called a work item in Worker parlance.
 
-Job arrays
-----------
+## Job arrays
 In olden times when the cluster was young and Moab was not used as a schedular some users developed the habit of using job arrays. The latter is an experimantal torque feature not supported by Moab and hence can no longer be used.
 
 To support those users who used the feature and since it offers a convenient workflow, worker implements job arrays in its own way.
@@ -118,8 +113,7 @@ $ wsub -t 1-100  -batch run.pbs
 ```
 The word_count program will now be run for all 100 input files — 7 concurrently — until all computations are done. Again, a computation for an individual input file, or, equivalently, an array id, is called a work item in Worker speak. Note that in constrast to torque job arrays, a worker job array submits a single job.
 
-MapReduce: prologue and epilogue
---------------------------------
+## MapReduce: prologue and epilogue
 Often, an embarrassingly parallel computation can be abstracted to three simple steps:
 
 a preparation phase in which the data is split up into smaller, more manageable chuncks;
@@ -133,8 +127,7 @@ $ wsub -prolog split-data.sh  -batch run.pbs  -epilog distr.sh -t 1-100
 ```
 Note that the time taken for executing the prologue and the epilogue should be added to the job's total walltime.
 
-Some notes on using Worker efficiently
---------------------------------------
+## Some notes on using Worker efficiently
 Worker is implemented using MPI, so it is not restricted to a single compute node, it scales well to many nodes. However, remember that jobs requesting a large number of nodes typically spend quite some time in the queue.
 Worker will be effective when
   * work items, i.e., individual computations, are neither too short, nor too long (i.e., from a few minutes to a few hours); and,
@@ -145,8 +138,7 @@ that could be executed using multiple threads will be lower when using
 a single thread, provided the number of work items is larger than the
 number of cores.
 
-Monitoring a worker job
------------------------
+## Monitoring a worker job
 Since a Worker job will typically run for several hours, it may be reassuring to monitor its progress. Worker keeps a log of its activity in the directory where the job was submitted. The log's name is derived from the job's name and the job's ID, i.e., it has the form <jobname>.log<jobid>. For the running example, this could be 'run.pbs.log445948', assuming the job's ID is 445948. To keep an eye on the progress, one can use:
 ```
 $ tail -f run.pbs.log445948
@@ -157,8 +149,7 @@ $ watch -n 60 wsummarize run.pbs.log445948
 ```
 This will summarize the log file every 60 seconds.
 
-Time limits for work items
---------------------------
+## Time limits for work items
 Sometimes, the execution of a work item takes long than expected, or worse, some work items get stuck in an infinite loop. This situation is unfortunate, since it implies that work items that could successfully are not even started. Again, a simple and yet versatile solution is offered by the Worker framework. If we want to limit the execution of each work item to at most 20 minutes, this can be accomplished by modifying the script of the running example.
 ```
 #!/bin/bash -l
@@ -172,8 +163,7 @@ Note that it is trivial to set individual time constraints for work items by int
 
 Also note that 'timedrun' is in fact offered in a module of its own, so it can be used outside the Worker framework as well.
 
-Resuming a Worker job
----------------------
+## Resuming a Worker job
 Unfortunately, it is not always easy to estimate the walltime for a job, and consequently, sometimes the latter is underestimated. When using the Worker framework, this implies that not all work items will have been processed. Worker makes it very easy to resume such a job without having to figure out which work items did complete successfully, and which remain to be computed. Suppose the job that did not complete all its work items had ID '445948'.
 ```
 $ wresume -jobid 445948
@@ -188,8 +178,7 @@ $ wresume -jobid 445948 -retry
 ```
 By default, a job's prologue is not executed when it is resumed, while its epilogue is. 'wresume' has options to modify this default behavior.
 
-Multithreaded work items
-------------------------
+## Multithreaded work items
 If a work item uses threading, the execution of a `worker` job is very
 similar to that of a hybrid MPI/OpenMP application, and in compbination
 with CPU sets, similar measures should be taken to ensure efficient
@@ -211,8 +200,7 @@ the placements of the processes started in work items with respect to the
 CPU set of the node they are running on.  This can be useful to control
 the number of threads used by individual work items.
 
-Further information
--------------------
+## Further information
 This how-to introduces only Worker's basic features. The wsub command has some usage information that is printed when the -help option is specified:
 ```
 ### usage: wsub  -batch <batch-file>          \\
@@ -252,8 +240,7 @@ This how-to introduces only Worker's basic features. The wsub command has some u
 #                           command
 ```
 
-Troubleshooting
----------------
+## Troubleshooting
 The most common problem with the `worker` framework is that it doesn't
 seem to work at all, showing messages in the error file about module
 failing to work.  The cause is trivial, and easy to remedy.
@@ -269,21 +256,22 @@ file `run.pbs`:
 $ dos2unix run.pbs
 ```
 
-Examples
---------
+## Examples
 Some examples are provided in the [`examples`](examples) directory,
 material provided by Mag Selwa (mag.selwa@kuleuven.be).
 
 
-Requirements
-------------
+## Requirements
 
 The software is best installed using the Intel compiler suite, and for
 multithreaded workloads to run efficiently, Intel MPI 5.x.
 
 
-Changes
--------
+## Changes
+Changes in version 1.6.10
+  * Provide wrapper scripts to avoid Perl distribution confusion.
+  * Replace core-counter by nproc
+
 Changes in version 1.6.8
   * bugfix in PBS template that impacted `-master` flag
 
