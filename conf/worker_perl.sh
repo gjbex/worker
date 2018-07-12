@@ -1,1 +1,1 @@
-/usr/bin/perl
+PERL='/usr/bin/perl'
