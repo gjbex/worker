@@ -8,3 +8,10 @@ result <- sprintf(" %i + %i = %i \n",
                      value1, value2, sumv  )
 
 cat(result) 
+
+shost<-Sys.getenv("HOSTNAME")
+
+cat(shost, file=paste(toString(value1, width=2),".dat",sep=""),sep="\n")
+cat("Calculating sum: ", file=paste(toString(value1, width=2),".dat",sep=""),sep="\n",append=TRUE)
+cat(result, file=paste(toString(value1, width=2),".dat",sep=""),sep="\n",append=TRUE)
+
