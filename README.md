@@ -305,10 +305,18 @@ New in version 1.5.1
 New in version 1.5.0
   * Support for multithreaded work items
 
-Development
------------
+## Development
 This application is developed by Geert Jan Bex, Hasselt
 University/Leuven University (geertjan.bex@uhasselt.be).  Although the
 code is publicly available on GitHub, it is nevertheless an internal
 tool, so no support under any form is guaranteed, although it may
 be provided.
+
+## Contributors
+
+  * Mag Selwa
+    * Examples
+  * Stijn De Weirdt
+    * Fix to the build process
+  * Thomas Danckaert
+    * Feature suggestions
