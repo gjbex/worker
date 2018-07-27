@@ -12,7 +12,7 @@ pages:
 - Multithreaded work items: 'multithreading.md'
 - Worker commands: 'commands.md'
 - Further information: 'further_info.md'
-- Trouble shooring: 'trouble.md'
+- Troubleshooting: 'trouble.md'
 - Changes: 'changes.md'
 - Contact information: 'contact.md'
 site_dir: html_docs/worker
