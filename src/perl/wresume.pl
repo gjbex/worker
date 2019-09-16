@@ -277,7 +277,6 @@ my $vars = {
     'core_count'     => "$FindBin::Bin/core_count",
     'sleep'          => $sleep,
     'ppn'            => $ppn,
-    'core_count_mod' => $conf{core_counter_module},
     'core_count'     => "core-counter",
     'basename'       => $job_name,
     'default_log'    => $default_log,
