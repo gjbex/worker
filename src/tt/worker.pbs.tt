@@ -55,7 +55,7 @@ mpi_opt="${HOST_FILE} -np ${n_proc}"
 # only applicable when the threaded swith is on
 [%IF threaded%]
 n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
-n_cores`nproc`
+n_cores=$(nproc)
 omp="[%ppn%]"
 ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
