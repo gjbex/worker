@@ -436,7 +436,7 @@ sub create_run_script {
 	print STDERR "### error: can't create '$file_name': $!\n";
 	exit 2;
     }
-    print OUT "#!/bin/bash -l\n\n";
+    print OUT "#!/usr/bin/env bash\n\n";
     print OUT create_run_cmd(@_), "\n";
     close(OUT);
 }
