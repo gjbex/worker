@@ -60,7 +60,7 @@ omp="[%ppn%]"
 ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
 mpi=$(( ${n_nodes} * ${ppn} ))
-[%IF master]
+[%IF master%]
 mpi=$(( ${mpi} + 1 ))
 mom=`head -1 $PBS_NODEFILE`
 echo $mom > [%default_host%]
