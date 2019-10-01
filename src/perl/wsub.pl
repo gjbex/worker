@@ -305,7 +305,6 @@ my $vars = {
     'threaded'       => $threaded,
     'sleep'          => $sleep,
     'ppn'            => $ppn,
-    'core_count'     => "core-counter",
     'basename'       => $batch_tmpl_file,
     'default_log'    => $default_log,
     'default_pro'    => $default_pro,
