@@ -478,7 +478,7 @@ sub print_help {
 #                [-epilog <epilog-file>]      \\
 #                [-log <log-file>]            \\
 #                [-mpiverbose]                \\
-#                [-threaded <n>]                  \\
+#                [-threaded <n>]              \\
 #                [-sleep <microseconds>]      \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
