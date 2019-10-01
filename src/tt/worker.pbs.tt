@@ -60,7 +60,16 @@ omp="[%ppn%]"
 ppn=$(( ${n_cores} / ${omp} ))
 ppn_opt="-ppn ${ppn}"
 mpi=$(( ${n_nodes} * ${ppn} ))
+[%IF master]
+mpi=$(( ${mpi} + 1 ))
+mom=`head -1 $PBS_NODEFILE`
+echo $mom > [%default_host%]
+cat $PBS_NODEFILE >> [%default_host%]
+HOST_FILE="-machinefile [%default_host%]"
+mpi_opt="${HOST_FILE} -np ${mpi}"
+[%ELSE%]
 mpi_opt="-np ${mpi}"
+[%END%]
 # set thread option for worker
 WORKER_THREADS="-t $omp"
 # ensure that mpirun doesn't igonre parameters, which it does when running
