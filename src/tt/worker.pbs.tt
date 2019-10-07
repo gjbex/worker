@@ -81,6 +81,7 @@ export I_MPI_PIN_DOMAIN=omp:compact
 export KMP_AFFINITY=compact
 [%END%]
 
+export I_MPI_WAIT_MODE=enable
 # compute log option
 WORKER_LOG_FILE="-l [%logfile%]"
 
