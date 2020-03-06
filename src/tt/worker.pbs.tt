@@ -44,34 +44,46 @@ n_proc=$(cat ${PBS_NODEFILE} | wc -l)
 # only applicable when the master switch is on
 # create host file to use for this job and compute number of cores
 [%IF master%]
-mom=`head -1 $PBS_NODEFILE`
-echo $mom > [%default_host%]
-cat $PBS_NODEFILE >> [%default_host%]
-HOST_FILE="-machinefile [%default_host%]"
-n_proc=$(( ${n_proc} + 1 ))
-mpi_opt="${HOST_FILE} -np ${n_proc}"
+    mom=`head -1 $PBS_NODEFILE`
+    echo $mom > [%default_host%]
+    cat $PBS_NODEFILE >> [%default_host%]
+    HOST_FILE="-machinefile [%default_host%]"
+    n_proc=$(( ${n_proc} + 1 ))
+    mpi_opt="${HOST_FILE} -np ${n_proc}"
 [%END%]
 
 # only applicable when the threaded swith is on
 [%IF threaded%]
-n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
-n_cores=$(nproc)
-omp="[%ppn%]"
-ppn=$(( ${n_cores} / ${omp} ))
-ppn_opt="-ppn ${ppn}"
-mpi=$(( ${n_nodes} * ${ppn} ))
-mpi_opt="-np ${mpi}"
+    n_nodes=$(cat ${PBS_NODEFILE} | uniq | wc -l)
+    n_cores=$(nproc)
+    omp="[%ppn%]"
+    ppn=$(( ${n_cores} / ${omp} ))
+    ppn_opt="-ppn ${ppn}"
+    mpi=$(( ${n_nodes} * ${ppn} ))
+    [%IF master%]
+        mpi=$(( ${mpi} + 1 ))
+        mom=`head -1 $PBS_NODEFILE`
+        echo $mom > [%default_host%]
+    [%END%]
+    for host in $(cat ${PBS_NODEFILE} | uniq); do
+        for i in $(seq ${ppn}); do
+            echo ${host} >> [%default_host%]
+        done
+    done
+    HOST_FILE="-machinefile [%default_host%]"
+    mpi_opt="${HOST_FILE} -np ${mpi}"
 # set thread option for worker
-WORKER_THREADS="-t $omp"
+    WORKER_THREADS="-t $omp"
 # ensure that mpirun doesn't igonre parameters, which it does when running
 # under torque
-export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
+    export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
 # ensure correct distribution of processes over sockets
-export OMP_NUM_THREADS=$omp
-export I_MPI_PIN_DOMAIN=omp:compact
-export KMP_AFFINITY=compact
+    export OMP_NUM_THREADS=$omp
+    export I_MPI_PIN_DOMAIN=omp:compact
+    export KMP_AFFINITY=compact
 [%END%]
 
+export I_MPI_WAIT_MODE=enable
 # compute log option
 WORKER_LOG_FILE="-l [%logfile%]"
 
