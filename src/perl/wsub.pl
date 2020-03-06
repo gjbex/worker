@@ -305,7 +305,6 @@ my $vars = {
     'threaded'       => $threaded,
     'sleep'          => $sleep,
     'ppn'            => $ppn,
-    'core_count'     => "core-counter",
     'basename'       => $batch_tmpl_file,
     'default_log'    => $default_log,
     'default_pro'    => $default_pro,
@@ -318,8 +317,6 @@ my $vars = {
     'run_ext'        => $run_ext,
     'pbs_file'       => $pbs_file,
     'unload_modules' => $conf{unload_modules},
-    'threaded'       => $threaded,
-    'ppn'            => $ppn,
     'mpi_module'     => $conf{mpi_module},
     'module_path'    => $conf{module_path},
     'mpirun'         => $conf{mpirun},
@@ -481,7 +478,7 @@ sub print_help {
 #                [-epilog <epilog-file>]      \\
 #                [-log <log-file>]            \\
 #                [-mpiverbose]                \\
-#                [-threaded <n>]                  \\
+#                [-threaded <n>]              \\
 #                [-sleep <microseconds>]      \\
 #                [-dryrun] [-verbose]         \\
 #                [-quiet] [-help]             \\
