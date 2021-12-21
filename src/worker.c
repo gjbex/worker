@@ -116,9 +116,9 @@ void initMpiTypes(void) {
     offsets[0] = 0;
     baseTypes[0] = MPI_INT;
     blockCounts[0] = 2;
-    MPI_Type_struct(1, blockCounts, offsets, baseTypes, &jobInfoType);
+    MPI_Type_create_struct(1, blockCounts, offsets, baseTypes, &jobInfoType);
     MPI_Type_commit(&jobInfoType);
-    MPI_Type_struct(1, blockCounts, offsets, baseTypes, &jobExitInfoType);
+    MPI_Type_create_struct(1, blockCounts, offsets, baseTypes, &jobExitInfoType);
     MPI_Type_commit(&jobExitInfoType);
 }
 
