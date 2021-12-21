@@ -320,3 +320,5 @@ be provided.
     * Fix to the build process
   * Thomas Danckaert
     * Feature suggestions
+  * Kenneth Hoste
+    * Fix for deprecated function call
