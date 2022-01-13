@@ -23,6 +23,7 @@
 
 void printHelp(void);
 void initMpiTypes(void);
+void freeMpiTypes(void);
 
 /* global verbosity flag, to be set on the command line */
 int verbose = 0;
@@ -38,6 +39,21 @@ int main(int argc, char *argv[]) {
     char *logFile = NULL;
     char optChar = '\0';
     unsigned int sleepTime = DEFAULT_USLEEP, numThreads = 1;
+    int rank, size, exitStatus;
+
+    /* initialize MPI, and get the rank */
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    /* check whether there is at least 1 slave */
+    if (size == 1) {
+        fprintf(stderr, "### error: at least one slave needed,\n"
+                "           modify nodes/ppn\n");
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    /* handle command line options */
     while ((optChar = getopt(argc, argv, "p:b:e:l:s:t:vh")) != -1) {
         switch (optChar) {
             case 'p':
@@ -77,30 +93,40 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    int rank, size, exitStatus;
+    /* communicate command line parameters to other processes */
+    MPI_Bcast(&numThreads, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&verbose, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    /* initialize MPI, and get the rank */
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    /* check whether there is at least 1 slave */
-    if (size == 1) {
-        fprintf(stderr, "### error: at least one slave needed,\n"
-                "           modify nodes/ppn\n");
-        MPI_Abort(MPI_COMM_WORLD, 1);
-    }
+    /* initialize types */
     initMpiTypes();
 
     /* do the actual work, either as master, or as slave */
     if (rank == 0) {
+        if (verbose) {
+            fprintf(stderr, "### msg: starting master\n");
+        }
         exitStatus = master(prologFile, batchFile, epilogFile, logFile,
                             sleepTime, verbose);
+        if (verbose) {
+            fprintf(stderr, "### msg: master ending\n");
+        }
         if (exitStatus != EXIT_SUCCESS)
+            if (verbose) {
+                fprintf(stderr, "### msg: master exiting with status %d\n", exitStatus);
+            }
             MPI_Abort(MPI_COMM_WORLD, 2);
     } else {
+        if (verbose) {
+            fprintf(stderr, "### msg: starting slave %d\n", rank);
+        }
         exitStatus = slave(numThreads, verbose);
+        if (verbose) {
+            fprintf(stderr, "### msg: slave %d ending with status %d\n", rank, exitStatus);
+        }
     }
+
+    /* free up type resources */
+    freeMpiTypes();
 
     /* clean up */
     MPI_Finalize();
@@ -116,10 +142,15 @@ void initMpiTypes(void) {
     offsets[0] = 0;
     baseTypes[0] = MPI_INT;
     blockCounts[0] = 2;
-    MPI_Type_struct(1, blockCounts, offsets, baseTypes, &jobInfoType);
+    MPI_Type_create_struct(1, blockCounts, offsets, baseTypes, &jobInfoType);
     MPI_Type_commit(&jobInfoType);
-    MPI_Type_struct(1, blockCounts, offsets, baseTypes, &jobExitInfoType);
+    MPI_Type_create_struct(1, blockCounts, offsets, baseTypes, &jobExitInfoType);
     MPI_Type_commit(&jobExitInfoType);
+}
+
+void freeMpiTypes(void) {
+    MPI_Type_free(&jobInfoType);
+    MPI_Type_free(&jobExitInfoType);
 }
 
 /* print command line usage information */
