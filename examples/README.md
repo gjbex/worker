@@ -11,7 +11,7 @@ and applications.
     will use a license per concurrent work item, compile the Matlab
     script first!)
 1. `sas_example`: computation done by a SAS script.
-1. create the executable file by running `make`. 
+1. create the executable file called `vectors1.exe` by running `make` command. 
 
 ## Acknowledgement
 Examples in this directory were kindly provided by Mag Selwa
