@@ -11,10 +11,10 @@ module load [%mpi_module%]
 WORKER_APPL="[%worker%]"
 
 # get the job ID and to compute appropriate names
-WORKER_JOBID=`echo $PBS_JOBID | sed 's/\([0-9][0-9]*\).*/\1/'`
+WORKER_JOBID=`echo $SLURM_JOB_ID | sed 's/\([0-9][0-9]*\).*/\1/'`
 
 # change to the working directory
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
 # rename artifacts consistently with job name and ID scheme
 mv [%dir%][%basename%][%batch_ext%] [%default_sh%]
