@@ -1,11 +1,12 @@
 #!/bin/bash -l
-#PBS -l nodes=1:ppn=20
-#PBS -l walltime=00:05:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node 36
+#SBATCH --time=00:05:00
+#SBATCH -A wrk
 
-source switch_to_2015a
-module load R/3.4.0-foss-2015a-tcl
+module load R
 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 export OMP_NUM_THREADS=1
 
 Rscript sum.R ${value1} ${value2}
