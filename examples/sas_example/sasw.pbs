@@ -1,11 +1,12 @@
 #!/bin/bash -l
-#PBS -l qos=debugging
-#PBS -N sasjob-worker
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node 36
+#SBATCH --time=00:05:00
+#SBATCH -A wrk
 
-source switch_to_2014a
-module load SAS 
 
-cd $PBS_O_WORKDIR
+module load SAS
+cd $SLURM_SUBMIT_DIR
 
 SAS_WORKDIR="sas-tmp-${PBS_JOBID}-${student}"
 mkdir ${SAS_WORKDIR}
