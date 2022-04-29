@@ -1,0 +1,10 @@
+#!/bin/bash -l 
+#PBS -l nodes=2:ppn=36
+#PBS -l walltime=00:05:00
+#PBS -A lp_hpcinfo_training
+
+cd $PBS_O_WORKDIR
+
+vectors1.exe $dimension
+
+  
