@@ -6,3 +6,4 @@
 
 cd $SLURM_SUBMIT_DIR
 vectors1.exe $dimension
+

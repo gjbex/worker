@@ -2,6 +2,6 @@
 
 make
 
-module load worker
+module load worker 
 
 wsub -batch vec2.pbs -data vec2.csv 
