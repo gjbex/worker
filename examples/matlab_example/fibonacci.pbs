@@ -1,9 +1,10 @@
 #!/bin/bash -l
-#PBS -l nodes=1:ppn=20
-#PBS -l walltime=00:05:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node 36
+#SBATCH --time=00:05:00
+#SBATCH -A wrk
 
-source switch_to_2015a
-module load matlab/R2015b 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
+module load matlab
 
 ./fibonacci ${num1} 

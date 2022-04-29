@@ -1,12 +1,11 @@
 #!/bin/bash -l
-#PBS -l nodes=1:ppn=20
-#PBS -l walltime=00:05:00
-#PBS -A lp_hpcinfo_training
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node 36
+#SBATCH --time=00:05:00
+#SBATCH -A wrk
 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
 INPUT_FILE="input${PBS_ARRAYID}.dat"
 OUTPUT_FILE="output${PBS_ARRAYID}.dat"
 power.sh ${INPUT_FILE} ${OUTPUT_FILE}
-
-
