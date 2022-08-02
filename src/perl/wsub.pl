@@ -334,10 +334,10 @@ msg("restoring command line options");
 # -N: if no job name was specified either on the command line or in the
 # PBS file, leave it to qsub
 if (defined $job_name) {
-    unshift(@ARGV, '-N', $job_name);
+    unshift(@ARGV, '-J', $job_name);
 } elsif (!$pbs->has_name()) {
     $job_name = compute_pbs_jobname($job_name, $pbs, $batch_tmpl);
-    unshift(@ARGV, '-N', $job_name);
+    unshift(@ARGV, '-J', $job_name);
 }
 # -C
 if (defined $directive_prefix && $directive_prefix ne $Pbs::Parser::DEFAULT_PREFIX) {
