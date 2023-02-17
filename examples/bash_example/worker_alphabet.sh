@@ -1,4 +1,4 @@
 #!/bin/bash -l
 module load worker
 
-wsub -batch alphabet.pbs -data alpha.csv
+wsub -batch alphabet.slurm -data alpha.csv
