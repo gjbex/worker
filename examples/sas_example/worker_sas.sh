@@ -2,4 +2,4 @@
 
 module load worker
 
-wsub -batch sas.slurm -data score.csv 
+wsub -batch sasw.slurm -data score.csv 
