@@ -4,4 +4,4 @@
 
 module load worker
 
-wsub -batch fibonacci.pbs -data num.csv 
+wsub -batch fibonacci.slurm -data num.csv 

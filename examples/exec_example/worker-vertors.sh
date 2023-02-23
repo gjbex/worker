@@ -4,4 +4,4 @@ make
 
 module load worker 
 
-wsub -batch vec2.pbs -data vec2.csv 
+wsub -batch vec2.slurm -data vec2.csv 
