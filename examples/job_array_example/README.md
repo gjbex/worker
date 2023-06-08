@@ -3,7 +3,7 @@
 Example of using worker's job array feature with a bash script.
 
 ## What is it?
-1. ``run-array.pbs`: PBS script for worker that runs a Bash script
+1. `run-array.slurm`: SLURM script for worker that runs a Bash script
     `power.sh` for each value specified by the `-t` option upon job
     submission.
 1. `power.sh`: Bash script that reads the content of a file (single
