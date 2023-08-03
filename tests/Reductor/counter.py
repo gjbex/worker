@@ -18,16 +18,16 @@ if __name__ == '__main__':
     arg_parser.add_argument('--verbose', action='store_true',
                             help='verbose output')
     options = arg_parser.parse_args()
-    count = dict()
+    count = {}
     with open(options.input, 'r') as in_file:
-        for line_nr in xrange(options.start):
+        for _ in xrange(options.start):
             _ = in_file.readline()
         for line_nr in xrange(options.start, options.end):
             line = in_file.readline().rstrip()
             if not line:
                 break
             if options.verbose:
-                sys.stderr.write('processing line ' + str(line_nr) + '\n')
+                sys.stderr.write(f'processing line {str(line_nr)}' + '\n')
             for word in line.split():
                 if word not in count:
                     count[word] = 0

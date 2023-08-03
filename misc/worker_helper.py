@@ -63,11 +63,12 @@ def walltime2seconds(walltime):
     220343
     '''
     time_strs = walltime.split(':')[::-1]
-    seconds = 0
-    for period, multiplier in zip(map(int, time_strs),
-                                 [1, 60, 3600, 24*3600]):
-        seconds += period*multiplier
-    return seconds
+    return sum(
+        period * multiplier
+        for period, multiplier in zip(
+            map(int, time_strs), [1, 60, 3600, 24 * 3600]
+        )
+    )
 
 
 # see derivation.ipynb for details on this function
