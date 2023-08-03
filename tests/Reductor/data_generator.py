@@ -16,8 +16,6 @@ if __name__ == '__main__':
     for _ in xrange(options.lines):
         words = []
         for _ in xrange(options.words_per_line):
-            word = ''
-            for _ in xrange(options.word_length):
-                word += random.choice('ABCDE')
+            word = ''.join(random.choice('ABCDE') for _ in xrange(options.word_length))
             words.append(word)
         print(' '.join(words))
